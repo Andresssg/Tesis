@@ -8,7 +8,11 @@ import base64
 import io
 from PIL import Image
 
-from django.conf import settings
+import os
+import cv2
+from ultralytics import YOLO
+import supervision as sv
+
 import os
 
 @api_view(['POST'])
@@ -28,11 +32,90 @@ def video_upload_view(request):
     low_fps_video = reduce_fps(file_path, file_name, 8)
     first_frame = extract_first_frame(file_path)
 
-    # Puedes realizar otras acciones con el archivo si es necesario,
-    # como guardar información en una base de datos o procesar el video.
+    return Response({'park_name': park_name, 'file_name':file_name,'first_frame': first_frame})
 
-    return Response({'file_path': file_path, 'park_name': park_name, 'file_name':file_name,'first_frame': first_frame})
+@api_view(['POST'])
+def detect_people(request):
+    video_name = request.data.get('videoname')
+    start_point = request.data.get('start')
+    end_point = request.data.get('end')
+    if not start_point or not end_point or not video_name:
+        return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
+    if not len(start_point)==2 or not len(end_point)==2:
+        return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
+    
+    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    dir_path_out = verify_directory('out')
+    video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
+    cap = cv2.VideoCapture(low_fps_video_path)
+    total_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    ret, frame = cap.read()
+    H, W, _ = frame.shape
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(video_path_out, fourcc, int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
+
+    box_annotator = sv.BoxAnnotator(
+        thickness=2,
+        text_thickness=1,
+        text_scale=0.5
+    )
+    START = sv.Point(start_point[0], start_point[1])
+    END = sv.Point(end_point[0], end_point[1])
+    
+    #Se definen los estilos de la linea y se colocan los puntos inicial y final
+    line_zone = sv.LineZone(start=START, end=END)
+
+    line_zone_annotator = sv.LineZoneAnnotator(
+        thickness=2,
+        text_thickness=1,
+        text_scale=0.5,
+    )
+
+    frame_count = 0
+    last_printed = -1
+
+    #Se importa el modelo 
+    model = YOLO("yolov8n.pt")
+
+    #Se itera cada frame del video
+    for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
+        percentage = round(frame_count / total_frame * 100)
+        if percentage % 1 == 0 and percentage != last_printed:
+            print(f"{percentage}%")
+            last_printed = percentage
+
+        #Se obtiene el frame
+        frame = result.orig_img
+        #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
+        detections = sv.Detections.from_yolov8(result)
+        
+        if result.boxes.id is not None:
+            detections.tracker_id = result.boxes.id.cpu().numpy().astype(int)
+
+        labels = [
+            f"{tracker_id} {model.model.names[class_id]} {confidence:0.2f}"
+            for _, confidence, class_id, tracker_id
+            in detections
+        ]
+
+        frame = box_annotator.annotate(scene=frame, detections=detections, labels=labels)
+        
+        line_zone.trigger(detections=detections)
+        line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
+
+        out.write(frame)
+
+        frame_count += 1
+        
+    print("In: ", line_zone.in_count)
+    print("Out: ",line_zone.out_count)
+
+    out.release()
+    cap.release()
+
+    return Response({'video_name':video_name, 'start_point':start_point, 'end_point':end_point})
 
 def is_video(file):
     mime_type = file.content_type
@@ -62,13 +145,10 @@ def extract_first_frame(video_path):
         # Codifica la imagen en base64
         encoded_image = base64.b64encode(image_buffer.getvalue()).decode('utf-8')
 
-        # Cierra el video
         cap.release()
 
-        # Devuelve la imagen codificada en base64
         return encoded_image
     else:
-        # No se pudo leer el primer frame, maneja el caso de error
         cap.release()
         raise ValueError("No se pudo leer el primer frame del video.")
 
@@ -83,12 +163,9 @@ def reduce_fps(original_video_path, video_name, num_fps):
     alto = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # Obtiene la ruta completa de la carpeta "low"
-    low_video_path = os.path.join(default_storage.base_location, 'videos', 'low')
+    low_video_path = verify_directory('low')
 
-    # Crea la carpeta "low" si no existe
-    os.makedirs(low_video_path, exist_ok=True)
-
-    new_video_path = f'{low_video_path}/low_{video_name}'
+    new_video_path = create_path(low_video_path, f'low_{video_name}')
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(new_video_path, fourcc, num_fps, (ancho, alto))
@@ -115,3 +192,12 @@ def reduce_fps(original_video_path, video_name, num_fps):
     # Libera los recursos
     video.release()
     out.release()
+
+def verify_directory(directory_name):
+    video_path = os.path.join(default_storage.base_location, 'videos', directory_name)
+    os.makedirs(video_path, exist_ok=True)
+    return video_path
+
+def create_path(path, file_name):
+    file_path = os.path.join(path, file_name)
+    return file_path
