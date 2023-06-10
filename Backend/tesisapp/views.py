@@ -193,6 +193,10 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
+def save_in_db ():
+    
+    return 'hola'
+
 def verify_directory(directory_name):
     video_path = os.path.join(default_storage.base_location, 'videos', directory_name)
     os.makedirs(video_path, exist_ok=True)
