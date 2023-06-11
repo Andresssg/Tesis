@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
+import imghdr
 
 import cv2
 import base64
@@ -144,10 +145,11 @@ def extract_first_frame(video_path):
 
         # Codifica la imagen en base64
         encoded_image = base64.b64encode(image_buffer.getvalue()).decode('utf-8')
-
+        image_format = imghdr.what(None, h=image_buffer.getvalue())
+        image_base64 = f"data:{image_format};base64,{encoded_image}"
         cap.release()
 
-        return encoded_image
+        return image_base64
     else:
         cap.release()
         raise ValueError("No se pudo leer el primer frame del video.")
