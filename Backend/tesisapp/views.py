@@ -30,21 +30,21 @@ def video_upload_view(request):
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
 
     file_obj = request.FILES['video']
-    file_name = generate_unique_filename(file_obj.name, park_name)
+    video_name = generate_unique_filename(file_obj.name, park_name)
 
     # Validar si el archivo es un video
     if not is_video(file_obj):
         return Response({'error': 'El archivo no es un video válido.'}, status=400)
 
-    file_path = default_storage.save(f'videos/{file_name}', file_obj)
-    low_fps_video = reduce_fps(file_path, file_name, 8)
+    file_path = default_storage.save(f'videos/{video_name}', file_obj)
+    low_fps_video = reduce_fps(file_path, video_name, 8)
     first_frame = extract_first_frame(file_path)
 
-    return Response({'park_name': park_name, 'file_name':file_name,'first_frame': first_frame})
+    return Response({'park_name': park_name, 'video_name':video_name,'first_frame': first_frame})
 
 @api_view(['POST'])
 def detect_people(request):
-    video_name = request.data.get('videoname')
+    video_name = request.data.get('video_name')
     start_point = request.data.get('start')
     end_point = request.data.get('end')
     park_name = request.data.get('park_name')
