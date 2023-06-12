@@ -49,7 +49,8 @@ def detect_people(request):
     end_point = request.data.get('end')
     park_name = request.data.get('park_name')
     fecha = date.today()
-    if not start_point or not end_point or not video_name:
+    
+    if not start_point or not end_point or not video_name or not park_name:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
