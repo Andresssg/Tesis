@@ -2,7 +2,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
+from datetime import date
 import imghdr
+
+from .serializer import ConteosSerializer
+from .serializer import ReportesSerializer
+
+from .models import Conteos
+from .models import Reportes
 
 import cv2
 import base64
@@ -40,6 +47,8 @@ def detect_people(request):
     video_name = request.data.get('videoname')
     start_point = request.data.get('start')
     end_point = request.data.get('end')
+    park_name = request.data.get('park_name')
+    fecha = date.today()
     if not start_point or not end_point or not video_name:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
@@ -116,16 +125,38 @@ def detect_people(request):
     out.release()
     cap.release()
 
-    return Response({'video_name':video_name, 'start_point':start_point, 'end_point':end_point})
+    data_request_conteos = {}
+    data_request_conteos['ingreso_personas'] = line_zone.in_count
+    data_request_conteos['salida_personas'] = line_zone.out_count
+
+    serializer_conteo = ConteosSerializer(data=data_request_conteos)
+
+    if not serializer_conteo.is_valid():
+        return Response(serializer_conteo.errors, status=400)
+    serializer_conteo.save()
+
+    ultimo_conteo = Conteos.objects.latest('id_conteos')
+
+    data_request_reportes = {}
+    data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
+    data_request_reportes['fecha_hora'] = fecha
+    data_request_reportes['parque'] = park_name
+    
+    serializer_reportes = ReportesSerializer(data=data_request_reportes)
+    if serializer_reportes.is_valid():
+        serializer_reportes.save()
+        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data, 'end_point':end_point}, status=201)
+    return Response(serializer_reportes.errors, status=400)
 
 def is_video(file):
     mime_type = file.content_type
     return mime_type.startswith('video/')
 
 def generate_unique_filename(original_name, park_name):
+    new_name = park_name.replace(" ", "-")
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     filename, extension = original_name.rsplit('.', 1)
-    return f'{park_name}_{timestamp}.{extension}'
+    return f'{new_name}_{timestamp}.{extension}'
 
 def extract_first_frame(video_path):
     cap = cv2.VideoCapture(video_path)
