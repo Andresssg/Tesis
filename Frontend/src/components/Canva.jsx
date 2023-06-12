@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Stage, Layer, Image, Circle, Line, Text } from 'react-konva'
 import { RequestContext } from '../contexts/RequestContext'
 
-function Canva ({ imageBase64, processedData }) {
-  const { BASE_URL } = useContext(RequestContext)
+function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, setIsLoading }) {
+  const { BASE_URL, setStatistics } = useContext(RequestContext)
   const [image, setImage] = useState(null)
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   const [lines, setLines] = useState([])
@@ -58,6 +58,9 @@ function Canva ({ imageBase64, processedData }) {
   }, [points])
 
   const handleAnalyze = async () => {
+    setShowImage()
+    setShowStatistics()
+    setIsLoading(true)
     const { x: startX, y: startY } = points[0]
     const { x: endX, y: endY } = points[1]
     const start = [startX * 2, startY * 2]
@@ -80,7 +83,8 @@ function Canva ({ imageBase64, processedData }) {
     })
     const data = await res?.json()
     if (!res.ok) return window.alert(data?.error || 'Hubo un problema al analizar el video')
-    console.log(data)
+    setIsLoading(false)
+    setStatistics(data)
   }
 
   return (
