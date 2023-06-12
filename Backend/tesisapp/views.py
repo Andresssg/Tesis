@@ -49,7 +49,8 @@ def detect_people(request):
     end_point = request.data.get('end')
     park_name = request.data.get('park_name')
     fecha = date.today()
-    if not start_point or not end_point or not video_name:
+
+    if not start_point or not end_point or not video_name or not park_name:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
@@ -145,7 +146,7 @@ def detect_people(request):
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
     if serializer_reportes.is_valid():
         serializer_reportes.save()
-        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data, 'end_point':end_point}, status=201)
+        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data}, status=201)
     return Response(serializer_reportes.errors, status=400)
 
 def is_video(file):
