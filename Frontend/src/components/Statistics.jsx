@@ -3,7 +3,6 @@ import { RequestContext } from '../contexts/RequestContext'
 
 function Statistics () {
   const { statistics } = useContext(RequestContext)
-  console.log(statistics)
   const handleDownload = () => {
     window.alert('descargar')
   }
