@@ -12,7 +12,7 @@ class Conteos(models.Model):
 class Reportes(models.Model):
     id_reportes = models.AutoField(primary_key = True)
     id_conteo_personas = models.ForeignKey(Conteos , on_delete=models.CASCADE)
-    fecha_hora = models.DateField()
+    fecha_hora = models.DateTimeField()
     parque = models.CharField(max_length = 100)
     
     def __str__(self):
