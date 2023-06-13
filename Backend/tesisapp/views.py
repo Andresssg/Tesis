@@ -157,8 +157,8 @@ def detect_people(request):
     respuesta = save_in_db(park_name, line_zone.in_count,line_zone.out_count )
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
-    graphic = create_graph(park_name)
-    return Response({'conteo':respuesta[1].data, 'graph':graphic}, status=201)
+    chart = create_chart(park_name)
+    return Response({'conteo':respuesta[1].data, 'chart':chart}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
@@ -273,7 +273,7 @@ def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
     return file_path
 
-def create_graph(park_name):
+def create_chart(park_name):
     reportes = Reportes.objects.filter(parque=park_name)
     fechas = []
     ingresos = []
@@ -295,18 +295,18 @@ def create_graph(park_name):
 
     ax.set_xlabel('Fecha y hora')
     ax.set_ylabel('Cantidad de personas')
-    ax.set_title(f'Ingresos y Salidas {park_name}')
+    ax.set_title(f'Ingresos y Salidas parque {park_name}')
 
     ax.set_xticks(index + bar_width / 2)
     ax.set_xticklabels(fechas, rotation=45, ha='right')
     ax.legend()
     plt.tight_layout()
 
-    graph_buffer = io.BytesIO()
-    plt.savefig(graph_buffer, format='png')
-    graph_buffer.seek(0)
+    chart_buffer = io.BytesIO()
+    plt.savefig(chart_buffer, format='png')
+    chart_buffer.seek(0)
 
-    encoded_image = base64.b64encode(graph_buffer.getvalue()).decode('utf-8')
-    image_format = imghdr.what(None, h=graph_buffer.getvalue())
+    encoded_image = base64.b64encode(chart_buffer.getvalue()).decode('utf-8')
+    image_format = imghdr.what(None, h=chart_buffer.getvalue())
     image_base64 = f"data:{image_format};base64,{encoded_image}"
     return image_base64
