@@ -78,8 +78,9 @@ def detect_people(request):
     start_point = request.data.get('start')
     end_point = request.data.get('end')
     park_name = f"{request.data.get('park_name')}".upper()
+    record_date = request.data.get('record_date')
 
-    if not start_point or not end_point or not video_name or not park_name:
+    if not start_point or not end_point or not video_name or not park_name or not record_date:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
@@ -156,11 +157,11 @@ def detect_people(request):
     cap.release()
     return save_in_db(request, line_zone.in_count, line_zone.out_count)
     """
-    respuesta = save_in_db(park_name, 9, 16)
+    respuesta = save_in_db(park_name, record_date, 9, 16)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     graphic = create_graph(park_name)
-    return Response({'conteo':respuesta[1].data, 'grafica':graphic}, status=201)
+    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'grafica':graphic}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
@@ -240,7 +241,7 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
-def save_in_db(park_name, line_zone_in_count, line_zone_out_count):
+def save_in_db(park_name, record_date, line_zone_in_count, line_zone_out_count):
 
     data_request_conteos = {}
     data_request_conteos['ingreso_personas'] = line_zone_in_count
@@ -252,12 +253,13 @@ def save_in_db(park_name, line_zone_in_count, line_zone_out_count):
         return ["400", serializer_conteo]
     serializer_conteo.save()
 
-    fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    analysis_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     ultimo_conteo = Conteos.objects.latest('id_conteos')
 
     data_request_reportes = {}
     data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
-    data_request_reportes['fecha_hora'] = fecha
+    data_request_reportes['fecha_hora_analisis'] = analysis_date
+    data_request_reportes['fecha_hora_grabacion'] = record_date
     data_request_reportes['parque'] = park_name
     
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
@@ -283,7 +285,7 @@ def create_graph(park_name):
 
     for reporte in reportes:
         conteo = reporte.id_conteo_personas
-        fecha = f"{reporte.fecha_hora}"
+        fecha = f"{reporte.fecha_hora_analisis}"
         fecha = fecha.replace('+00:00', '')
         fechas.append(fecha)
         ingresos.append(conteo.ingreso_personas)
