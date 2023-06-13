@@ -48,7 +48,6 @@ def detect_people(request):
     start_point = request.data.get('start')
     end_point = request.data.get('end')
     park_name = request.data.get('park_name')
-    fecha = date.today()
 
     if not start_point or not end_point or not video_name or not park_name:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
@@ -125,29 +124,7 @@ def detect_people(request):
 
     out.release()
     cap.release()
-
-    data_request_conteos = {}
-    data_request_conteos['ingreso_personas'] = line_zone.in_count
-    data_request_conteos['salida_personas'] = line_zone.out_count
-
-    serializer_conteo = ConteosSerializer(data=data_request_conteos)
-
-    if not serializer_conteo.is_valid():
-        return Response(serializer_conteo.errors, status=400)
-    serializer_conteo.save()
-
-    ultimo_conteo = Conteos.objects.latest('id_conteos')
-
-    data_request_reportes = {}
-    data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
-    data_request_reportes['fecha_hora'] = fecha
-    data_request_reportes['parque'] = park_name
-    
-    serializer_reportes = ReportesSerializer(data=data_request_reportes)
-    if serializer_reportes.is_valid():
-        serializer_reportes.save()
-        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data}, status=201)
-    return Response(serializer_reportes.errors, status=400)
+    return save_in_db(request, line_zone.in_count, line_zone.out_count)
 
 def is_video(file):
     mime_type = file.content_type
@@ -227,9 +204,32 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
-def save_in_db ():
+def save_in_db(request, line_zone_in_count, line_zone_out_count):
+
+    data_request_conteos = {}
+    data_request_conteos['ingreso_personas'] = line_zone_in_count
+    data_request_conteos['salida_personas'] = line_zone_out_count
+
+    serializer_conteo = ConteosSerializer(data=data_request_conteos)
+
+    if not serializer_conteo.is_valid():
+        return Response(serializer_conteo.errors, status=400)
+    serializer_conteo.save()
+
+    fecha = date.today()
+    ultimo_conteo = Conteos.objects.latest('id_conteos')
+    park_name = request.data.get('park_name')
+
+    data_request_reportes = {}
+    data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
+    data_request_reportes['fecha_hora'] = fecha
+    data_request_reportes['parque'] = park_name
     
-    return 'hola'
+    serializer_reportes = ReportesSerializer(data=data_request_reportes)
+    if serializer_reportes.is_valid():
+        serializer_reportes.save()
+        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data}, status=201)
+    return Response(serializer_reportes.errors, status=400)
 
 def verify_directory(directory_name):
     video_path = os.path.join(default_storage.base_location, 'videos', directory_name)
