@@ -84,7 +84,7 @@ def detect_people(request):
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -154,13 +154,11 @@ def detect_people(request):
 
     out.release()
     cap.release()
-    return save_in_db(request, line_zone.in_count, line_zone.out_count)
-    """
-    respuesta = save_in_db(park_name, 9, 16)
+    respuesta = save_in_db(park_name, line_zone.in_count,line_zone.out_count )
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     graphic = create_graph(park_name)
-    return Response({'conteo':respuesta[1].data, 'grafica':graphic}, status=201)
+    return Response({'conteo':respuesta[1].data, 'graph':graphic}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
