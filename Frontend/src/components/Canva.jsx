@@ -37,7 +37,11 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }
 
   const changeSize = (img) => {
-    if (img.width >= 1792) { setFactor(3) }
+    if (img.width >= 1792) {
+      setFactor(3)
+      return 3
+    }
+    return 2
   }
 
   useEffect(() => {
@@ -47,9 +51,9 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
         .then((blob) => {
           const img = new window.Image()
           img.onload = () => {
-            changeSize(img)
+            const newFactor = changeSize(img)
             setImage(img)
-            setImageSize({ width: img.width / factor, height: img.height / factor })
+            setImageSize({ width: img.width / newFactor, height: img.height / newFactor })
           }
           img.src = URL.createObjectURL(blob)
         })
