@@ -1,9 +1,11 @@
+from django.http import FileResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
 from datetime import date
 import imghdr
+import mimetypes
 
 from .serializer import ConteosSerializer
 from .serializer import ReportesSerializer
@@ -41,6 +43,29 @@ def video_upload_view(request):
     first_frame = extract_first_frame(file_path)
 
     return Response({'park_name': park_name, 'video_name':video_name,'first_frame': first_frame})
+
+@api_view(['GET'])
+def download_video(request):
+    video_name = request.GET.get('video_name')
+    if not video_name:
+        return Response({'error': 'No se proporcionó el nombre del video.'})
+    
+    out_video_name = f"out_{video_name}"
+
+    dir_path = verify_directory('out')
+    video_path = create_path(dir_path,out_video_name)
+
+    mime_type, _ = mimetypes.guess_type(video_path)
+
+    try:
+        #Abre el video en modo lectura y en binario 'rb'->'readbinary'
+        with open(video_path, 'rb') as video_file:
+            video_file = open(video_path, 'rb')
+            response = FileResponse(video_file, content_type=mime_type)
+            response['Content-Disposition'] = f'attachment; filename="{video_name}"'
+            return response
+    except FileNotFoundError:
+        return Response({'error':'El video no existe'},status=404)
 
 @api_view(['POST'])
 def detect_people(request):
