@@ -8,6 +8,10 @@ import imghdr
 import mimetypes
 import pytz
 
+from django.shortcuts import render
+import matplotlib.pyplot as plt
+import numpy as np
+
 from .serializer import ConteosSerializer
 from .serializer import ReportesSerializer
 
@@ -73,14 +77,14 @@ def detect_people(request):
     video_name = request.data.get('video_name')
     start_point = request.data.get('start')
     end_point = request.data.get('end')
-    park_name = request.data.get('park_name')
+    park_name = f"{request.data.get('park_name')}".upper()
 
     if not start_point or not end_point or not video_name or not park_name:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -151,6 +155,12 @@ def detect_people(request):
     out.release()
     cap.release()
     return save_in_db(request, line_zone.in_count, line_zone.out_count)
+    """
+    respuesta = save_in_db(park_name, 9, 16)
+    if respuesta[0] == "400":
+        return Response(respuesta[1].errors, status=400)
+    graphic = create_graph(park_name)
+    return Response({'conteo':respuesta[1].data, 'grafica':graphic}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
@@ -230,7 +240,7 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
-def save_in_db(request, line_zone_in_count, line_zone_out_count):
+def save_in_db(park_name, line_zone_in_count, line_zone_out_count):
 
     data_request_conteos = {}
     data_request_conteos['ingreso_personas'] = line_zone_in_count
@@ -239,12 +249,11 @@ def save_in_db(request, line_zone_in_count, line_zone_out_count):
     serializer_conteo = ConteosSerializer(data=data_request_conteos)
 
     if not serializer_conteo.is_valid():
-        return Response(serializer_conteo.errors, status=400)
+        return ["400", serializer_conteo]
     serializer_conteo.save()
 
-    fecha = calculate_time()
+    fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     ultimo_conteo = Conteos.objects.latest('id_conteos')
-    park_name = request.data.get('park_name')
 
     data_request_reportes = {}
     data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
@@ -254,8 +263,8 @@ def save_in_db(request, line_zone_in_count, line_zone_out_count):
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
     if serializer_reportes.is_valid():
         serializer_reportes.save()
-        return Response({'conteo':serializer_conteo.data, 'reporte':serializer_reportes.data}, status=201)
-    return Response(serializer_reportes.errors, status=400)
+        return ["201", serializer_conteo,serializer_reportes]
+    return ["400", serializer_reportes]
 
 def verify_directory(directory_name):
     video_path = os.path.join(default_storage.base_location, 'videos', directory_name)
@@ -266,14 +275,40 @@ def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
     return file_path
 
-def calculate_time(): 
-    # Obtén la fecha y hora actual
-    fecha_actual = datetime.datetime.now()
-    zona_horaria_utc = pytz.timezone('UTC')
-    fecha_actual_utc = zona_horaria_utc.localize(fecha_actual)
+def create_graph(park_name):
+    reportes = Reportes.objects.filter(parque=park_name)
+    fechas = []
+    ingresos = []
+    salidas = []
 
-    # Establece la zona horaria de Colombia
-    zona_horaria_colombia = pytz.timezone('America/Bogota')
-    fecha_actual_colombia = fecha_actual_utc.astimezone(zona_horaria_colombia)
-    format_fecha_colombia = str(fecha_actual_colombia.strftime('%Y-%m-%d %H:%M:%S'))
-    return format_fecha_colombia
+    for reporte in reportes:
+        conteo = reporte.id_conteo_personas
+        fecha = f"{reporte.fecha_hora}"
+        fecha = fecha.replace('+00:00', '')
+        fechas.append(fecha)
+        ingresos.append(conteo.ingreso_personas)
+        salidas.append(conteo.salida_personas)
+
+    fig, ax = plt.subplots()
+    bar_width = 0.15
+    index = np.arange(len(fechas))
+    ax.bar(index, ingresos, bar_width, label='Personas que ingresan', color ="green")
+    ax.bar(index + bar_width, salidas, bar_width, label='Personas que salen', color ="red")
+
+    ax.set_xlabel('Fecha y hora')
+    ax.set_ylabel('Cantidad de personas')
+    ax.set_title(f'Ingresos y Salidas {park_name}')
+
+    ax.set_xticks(index + bar_width / 2)
+    ax.set_xticklabels(fechas, rotation=45, ha='right')
+    ax.legend()
+    plt.tight_layout()
+
+    graph_buffer = io.BytesIO()
+    plt.savefig(graph_buffer, format='png')
+    graph_buffer.seek(0)
+
+    encoded_image = base64.b64encode(graph_buffer.getvalue()).decode('utf-8')
+    image_format = imghdr.what(None, h=graph_buffer.getvalue())
+    image_base64 = f"data:{image_format};base64,{encoded_image}"
+    return image_base64
