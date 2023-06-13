@@ -85,7 +85,7 @@ def detect_people(request):
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -155,13 +155,12 @@ def detect_people(request):
 
     out.release()
     cap.release()
-    return save_in_db(request, line_zone.in_count, line_zone.out_count)
-    """
+
     respuesta = save_in_db(park_name, record_date, 9, 16)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
-    graphic = create_graph(park_name)
-    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'grafica':graphic}, status=201)
+    chart = create_chart(park_name)
+    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'chart':chart}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
@@ -277,7 +276,7 @@ def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
     return file_path
 
-def create_graph(park_name):
+def create_chart(park_name):
     reportes = Reportes.objects.filter(parque=park_name)
     fechas = []
     ingresos = []
@@ -299,18 +298,18 @@ def create_graph(park_name):
 
     ax.set_xlabel('Fecha y hora')
     ax.set_ylabel('Cantidad de personas')
-    ax.set_title(f'Ingresos y Salidas {park_name}')
+    ax.set_title(f'Ingresos y Salidas parque {park_name}')
 
     ax.set_xticks(index + bar_width / 2)
     ax.set_xticklabels(fechas, rotation=45, ha='right')
     ax.legend()
     plt.tight_layout()
 
-    graph_buffer = io.BytesIO()
-    plt.savefig(graph_buffer, format='png')
-    graph_buffer.seek(0)
+    chart_buffer = io.BytesIO()
+    plt.savefig(chart_buffer, format='png')
+    chart_buffer.seek(0)
 
-    encoded_image = base64.b64encode(graph_buffer.getvalue()).decode('utf-8')
-    image_format = imghdr.what(None, h=graph_buffer.getvalue())
+    encoded_image = base64.b64encode(chart_buffer.getvalue()).decode('utf-8')
+    image_format = imghdr.what(None, h=chart_buffer.getvalue())
     image_base64 = f"data:{image_format};base64,{encoded_image}"
     return image_base64
