@@ -88,7 +88,7 @@ function App () {
         <section className='flex flex-col items-center justify-center w-full'>
           {isLoading
             ? <Loading text='Analizando video' />
-            : <Statistics />}
+            : <Statistics videoName={data.video_name} />}
         </section>}
     </article>
   )
