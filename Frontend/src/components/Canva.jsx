@@ -7,6 +7,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const [image, setImage] = useState(null)
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   const [lines, setLines] = useState([])
+  const [factor, setFactor] = useState(2)
 
   const [points, setPoints] = useState([
     { x: 50, y: 100, color: 'green' }, // punto de inicio
@@ -35,6 +36,10 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
     setPoints(newPoints)
   }
 
+  const changeSize = (img) => {
+    if (img.width >= 1792) { setFactor(3) }
+  }
+
   useEffect(() => {
     if (imageBase64) {
       fetch(imageBase64)
@@ -42,8 +47,9 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
         .then((blob) => {
           const img = new window.Image()
           img.onload = () => {
+            changeSize(img)
             setImage(img)
-            setImageSize({ width: img.width / 2, height: img.height / 2 })
+            setImageSize({ width: img.width / factor, height: img.height / factor })
           }
           img.src = URL.createObjectURL(blob)
         })
@@ -63,8 +69,8 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
     setIsLoading(true)
     const { x: startX, y: startY } = points[0]
     const { x: endX, y: endY } = points[1]
-    const start = [startX * 2, startY * 2]
-    const end = [endX * 2, endY * 2]
+    const start = [startX * factor, startY * factor]
+    const end = [endX * factor, endY * factor]
 
     const { park_name, video_name } = processedData
     const payload = {
