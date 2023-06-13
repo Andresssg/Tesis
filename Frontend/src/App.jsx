@@ -2,15 +2,19 @@ import { useContext, useState } from 'react'
 import Loading from './components/Loading'
 import Canva from './components/Canva'
 import { RequestContext } from './contexts/RequestContext'
+import Statistics from './components/Statistics'
 
 function App () {
   const [isLoading, setIsLoading] = useState(true)
   const [showImage, setShowImage] = useState(false)
+  const [showStatistics, setShowStatistics] = useState(false)
   const [parkName, setParkName] = useState('')
   const [video, setVideo] = useState('')
   const [image, setImage] = useState('')
   const { BASE_URL } = useContext(RequestContext)
   const [data, setData] = useState()
+
+  const [prevVideo, setPrevVideo] = useState('')
 
   const handleUpload = (e) => {
     e.preventDefault()
@@ -18,8 +22,15 @@ function App () {
     const formParkName = form.get('parkname')
     const formVideo = form.get('video')
     if (!formParkName || !formVideo.size) return window.alert('Por favor complete los campos')
+    if (prevVideo === formVideo) {
+      const confirmed = window.confirm('¿Desea subir nuevamente el mismo video?')
+      if (!confirmed) { return }
+    }
+    setPrevVideo(formVideo)
     getData(form)
     setShowImage(true)
+    setIsLoading(true)
+    setShowStatistics(false)
   }
 
   const getData = async (form) => {
@@ -67,8 +78,17 @@ function App () {
       {showImage &&
         <section className='flex flex-col items-center justify-center w-full'>
           {isLoading
-            ? <Loading />
-            : <Canva imageBase64={image} processedData={data} />}
+            ? <Loading text='Subiendo video' />
+            : <Canva
+                imageBase64={image} processedData={data} setShowStatistics={() => setShowStatistics(!showStatistics)}
+                setShowImage={() => setShowImage(!setShowImage)} setIsLoading={(value) => setIsLoading(value)}
+              />}
+        </section>}
+      {showStatistics &&
+        <section className='flex flex-col items-center justify-center w-full'>
+          {isLoading
+            ? <Loading text='Analizando video' />
+            : <Statistics videoName={data.video_name} />}
         </section>}
     </article>
   )
