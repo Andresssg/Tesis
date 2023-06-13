@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import date
 import imghdr
 import mimetypes
+import pytz
 
 from .serializer import ConteosSerializer
 from .serializer import ReportesSerializer
@@ -241,7 +242,7 @@ def save_in_db(request, line_zone_in_count, line_zone_out_count):
         return Response(serializer_conteo.errors, status=400)
     serializer_conteo.save()
 
-    fecha = date.today()
+    fecha = calculate_time()
     ultimo_conteo = Conteos.objects.latest('id_conteos')
     park_name = request.data.get('park_name')
 
@@ -264,3 +265,15 @@ def verify_directory(directory_name):
 def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
     return file_path
+
+def calculate_time(): 
+    # Obtén la fecha y hora actual
+    fecha_actual = datetime.datetime.now()
+    zona_horaria_utc = pytz.timezone('UTC')
+    fecha_actual_utc = zona_horaria_utc.localize(fecha_actual)
+
+    # Establece la zona horaria de Colombia
+    zona_horaria_colombia = pytz.timezone('America/Bogota')
+    fecha_actual_colombia = fecha_actual_utc.astimezone(zona_horaria_colombia)
+    format_fecha_colombia = str(fecha_actual_colombia.strftime('%Y-%m-%d %H:%M:%S'))
+    return format_fecha_colombia
