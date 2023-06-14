@@ -3,12 +3,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
-from datetime import date
 import imghdr
 import mimetypes
-import pytz
-
-from django.shortcuts import render
+from moviepy.editor import VideoFileClip
+import magic
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -47,7 +45,9 @@ def video_upload_view(request):
     low_fps_video = reduce_fps(file_path, video_name, 8)
     first_frame = extract_first_frame(file_path)
 
-    return Response({'park_name': park_name, 'video_name':video_name,'first_frame': first_frame})
+    metadata = get_metadata(file_obj)
+
+    return Response({'park_name': park_name, 'video_name':video_name, 'metadata': metadata,'first_frame': first_frame })
 
 @api_view(['GET'])
 def download_video(request):
@@ -79,13 +79,14 @@ def detect_people(request):
     end_point = request.data.get('end')
     park_name = f"{request.data.get('park_name')}".upper()
     record_date = request.data.get('record_date')
+    comments = request.data.get('comments')
 
-    if not start_point or not end_point or not video_name or not park_name or not record_date:
+    if not start_point or not end_point or not video_name or not park_name or not record_date or not comments:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -154,9 +155,12 @@ def detect_people(request):
     print("Out: ",line_zone.out_count)
 
     out.release()
-    cap.release()
+    cap.release()"""
 
-    respuesta = save_in_db(park_name, record_date, 9, 16)
+    save = [park_name, record_date, comments]
+
+    #respuesta = save_in_db(park_name, record_date, comments, line_zone.in_count, line_zone.out_count)
+    respuesta = save_in_db(park_name, record_date, comments, 2, 3)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     chart = create_chart(park_name)
@@ -240,7 +244,7 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
-def save_in_db(park_name, record_date, line_zone_in_count, line_zone_out_count):
+def save_in_db(park_name, record_date, comments, line_zone_in_count, line_zone_out_count):
 
     data_request_conteos = {}
     data_request_conteos['ingreso_personas'] = line_zone_in_count
@@ -260,6 +264,7 @@ def save_in_db(park_name, record_date, line_zone_in_count, line_zone_out_count):
     data_request_reportes['fecha_hora_analisis'] = analysis_date
     data_request_reportes['fecha_hora_grabacion'] = record_date
     data_request_reportes['parque'] = park_name
+    data_request_reportes['observaciones'] = comments
     
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
     if serializer_reportes.is_valid():
@@ -271,6 +276,19 @@ def verify_directory(directory_name):
     video_path = os.path.join(default_storage.base_location, 'videos', directory_name)
     os.makedirs(video_path, exist_ok=True)
     return video_path
+
+def get_metadata(video_file):
+    video_clip = VideoFileClip(video_file.temporary_file_path())
+    duracion = video_clip.duration
+
+    # Obtener la fecha de creación del archivo
+    ruta_archivo = video_file.temporary_file_path()
+    fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta_archivo))
+    metadata = {
+        "duration" : duracion,
+        "date" : fecha_creacion
+    }
+    return metadata
 
 def create_path(path, file_name):
     file_path = os.path.join(path, file_name)

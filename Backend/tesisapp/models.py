@@ -17,6 +17,7 @@ class Reportes(models.Model):
     fecha_hora_analisis = models.DateTimeField(default=timezone.now)
     fecha_hora_grabacion = models.DateTimeField(default=timezone.now)
     parque = models.CharField(max_length = 100)
+    observaciones = models.TextField()
 
     def save(self, *args, **kwargs):
         tz = pytz.timezone('America/Bogota')
