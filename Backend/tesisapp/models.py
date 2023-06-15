@@ -23,10 +23,6 @@ class Reportes(models.Model):
     def save(self, *args, **kwargs):
         tz = pytz.timezone('America/Bogota')
         self.fecha_hora_analisis = self.fecha_hora_analisis.astimezone(tz)
-        super().save(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        tz = pytz.timezone('America/Bogota')
         self.fecha_hora_grabacion = self.fecha_hora_grabacion.astimezone(tz)
         super().save(*args, **kwargs)
     

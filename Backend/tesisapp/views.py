@@ -86,7 +86,7 @@ def detect_people(request):
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -155,7 +155,7 @@ def detect_people(request):
     print("Out: ",line_zone.out_count)
 
     out.release()
-    cap.release()"""
+    cap.release()
 
     save = {
         'video_name': video_name,
@@ -163,8 +163,7 @@ def detect_people(request):
         'record_date': record_date,
         'comments' : comments
     }
-    #respuesta = save_in_db(park_name, record_date, comments, line_zone.in_count, line_zone.out_count)
-    respuesta = save_in_db(save, 2, 3)
+    respuesta = save_in_db(park_name, record_date, comments, line_zone.in_count, line_zone.out_count)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     chart = create_chart(park_name)
