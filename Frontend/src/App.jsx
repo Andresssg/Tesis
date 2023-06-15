@@ -28,12 +28,12 @@ function App () {
     }
     setPrevVideo(formVideo)
     getData(form)
-    setShowImage(true)
-    setIsLoading(true)
-    setShowStatistics(false)
   }
 
   const getData = async (form) => {
+    setShowStatistics(false)
+    setShowImage(true)
+    setIsLoading(true)
     const res = await fetch(`${BASE_URL}/upload/`, {
       method: 'POST',
       headers: {
@@ -43,6 +43,7 @@ function App () {
     })
     const data = await res?.json()
     if (!res.ok) {
+      setIsLoading(false)
       return data?.error
         ? window.alert(data?.error)
         : window.alert(`Error al enviar los datos: ${res.statusText}`)
@@ -50,7 +51,9 @@ function App () {
     const { first_frame } = data
     setImage(first_frame)
     setData(data)
+    setShowImage(true)
     setIsLoading(false)
+    setShowStatistics(false)
   }
 
   return (

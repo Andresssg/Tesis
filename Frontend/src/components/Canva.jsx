@@ -91,7 +91,9 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       return window.alert('Campos incompletos')
     }
 
+    setShowImage(false)
     setIsLoading(true)
+    setShowStatistics(true)
     const res = await fetch(`${BASE_URL}/detect/`, {
       method: 'POST',
       headers: {
@@ -101,12 +103,13 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
     })
     const data = await res?.json()
     setIsLoading(false)
+    console.log('hola')
     if (!res.ok) {
       setShowImage(true)
+      console.log('hola no ok')
       return window.alert(data?.error || 'Hubo un problema al analizar el video')
     }
-    setShowImage(false)
-    setShowStatistics(true)
+    console.log('hola ok')
     setStatistics(data)
   }
 
