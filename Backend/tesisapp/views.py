@@ -119,7 +119,7 @@ def detect_people(request):
     last_printed = -1
 
     #Se importa el modelo 
-    model = YOLO("yolov8s.pt")
+    model = YOLO("yolov8n-visdrone.pt")
 
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
