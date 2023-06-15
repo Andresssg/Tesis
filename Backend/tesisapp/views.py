@@ -119,7 +119,7 @@ def detect_people(request):
     last_printed = -1
 
     #Se importa el modelo 
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolov8s.pt")
 
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
@@ -163,7 +163,7 @@ def detect_people(request):
         'record_date': record_date,
         'comments' : comments
     }
-    respuesta = save_in_db(park_name, record_date, comments, line_zone.in_count, line_zone.out_count)
+    respuesta = save_in_db(save, line_zone.in_count, line_zone.out_count)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     chart = create_chart(park_name)
