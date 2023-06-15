@@ -70,8 +70,8 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }, [points])
 
   const handleAnalyze = async () => {
-    const confirmMetadata = window.confirm(`La fecha del video es: ${new Date(recordDate)} ¿Desea modificarla?`)
-    if (confirmMetadata) return
+    const confirmMetadata = window.confirm(`La fecha proporcionada del video es: ${new Date(recordDate)}, ¿Esta fecha es correcta?`)
+    if (!confirmMetadata) return
 
     const { x: startX, y: startY } = points[0]
     const { x: endX, y: endY } = points[1]
@@ -94,23 +94,30 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
     setShowImage(false)
     setIsLoading(true)
     setShowStatistics(true)
-    const res = await fetch(`${BASE_URL}/detect/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    })
-    const data = await res?.json()
-    setIsLoading(false)
-    console.log('hola')
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${BASE_URL}/detect/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await res.json()
+
+      setIsLoading(false)
+      if (!res.ok) {
+        setShowImage(true)
+        setShowStatistics(false)
+        return window.alert(data?.error || 'Hubo un problema al analizar el video')
+      }
+      setStatistics(data)
+    } catch (error) {
+      setIsLoading(false)
       setShowImage(true)
-      console.log('hola no ok')
-      return window.alert(data?.error || 'Hubo un problema al analizar el video')
+      setShowStatistics(false)
+      window.alert('Error:', error)
     }
-    console.log('hola ok')
-    setStatistics(data)
   }
 
   const changeDate = (e) => {
