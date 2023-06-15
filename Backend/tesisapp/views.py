@@ -4,11 +4,13 @@ from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
 import imghdr
+import math
 import mimetypes
 from moviepy.editor import VideoFileClip
 import magic
 import matplotlib.pyplot as plt
 import numpy as np
+import pytz
 
 from .serializer import ConteosSerializer
 from .serializer import ReportesSerializer
@@ -45,9 +47,7 @@ def video_upload_view(request):
     low_fps_video = reduce_fps(file_path, video_name, 8)
     first_frame = extract_first_frame(file_path)
 
-    metadata = get_metadata(file_obj)
-
-    return Response({'park_name': park_name, 'video_name':video_name, 'metadata': metadata,'first_frame': first_frame })
+    return Response({'park_name': park_name, 'video_name':video_name,'first_frame': first_frame })
 
 @api_view(['GET'])
 def download_video(request):
@@ -157,10 +157,14 @@ def detect_people(request):
     out.release()
     cap.release()"""
 
-    save = [park_name, record_date, comments]
-
+    save = {
+        'video_name': video_name,
+        'park_name': park_name,
+        'record_date': record_date,
+        'comments' : comments
+    }
     #respuesta = save_in_db(park_name, record_date, comments, line_zone.in_count, line_zone.out_count)
-    respuesta = save_in_db(park_name, record_date, comments, 2, 3)
+    respuesta = save_in_db(save, 2, 3)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     chart = create_chart(park_name)
@@ -244,7 +248,7 @@ def reduce_fps(original_video_path, video_name, num_fps):
     video.release()
     out.release()
 
-def save_in_db(park_name, record_date, comments, line_zone_in_count, line_zone_out_count):
+def save_in_db(save, line_zone_in_count, line_zone_out_count):
 
     data_request_conteos = {}
     data_request_conteos['ingreso_personas'] = line_zone_in_count
@@ -262,9 +266,10 @@ def save_in_db(park_name, record_date, comments, line_zone_in_count, line_zone_o
     data_request_reportes = {}
     data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
     data_request_reportes['fecha_hora_analisis'] = analysis_date
-    data_request_reportes['fecha_hora_grabacion'] = record_date
-    data_request_reportes['parque'] = park_name
-    data_request_reportes['observaciones'] = comments
+    data_request_reportes['fecha_hora_grabacion'] = save["record_date"]
+    data_request_reportes['parque'] = save["park_name"]
+    data_request_reportes['observaciones'] = save["comments"]
+    data_request_reportes['duracion'] = get_duration(save["video_name"])
     
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
     if serializer_reportes.is_valid():
@@ -277,18 +282,18 @@ def verify_directory(directory_name):
     os.makedirs(video_path, exist_ok=True)
     return video_path
 
-def get_metadata(video_file):
-    video_clip = VideoFileClip(video_file.temporary_file_path())
-    duracion = video_clip.duration
+def get_duration(video_name):
+    video_path = f"videos\{video_name}"
+    video_clip = VideoFileClip(video_path)
+    total_duration = video_clip.duration
+    seconds = total_duration % 60
+    aux_minutes = math.floor(total_duration / 60 )
+    minutes = math.floor(total_duration / 60 ) % 60
+    hours = math.floor(aux_minutes / 60)
+    duration = f'{f"0{hours}" if hours<10 else hours}:{f"0{minutes}" if minutes<10 else minutes}:{f"0{seconds}" if seconds<10 else seconds}'
 
-    # Obtener la fecha de creación del archivo
-    ruta_archivo = video_file.temporary_file_path()
-    fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta_archivo))
-    metadata = {
-        "duration" : duracion,
-        "date" : fecha_creacion
-    }
-    return metadata
+    print(duration)
+    return duration
 
 def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
