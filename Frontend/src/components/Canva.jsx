@@ -8,6 +8,8 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   const [lines, setLines] = useState([])
   const [factor, setFactor] = useState(2)
+  const [comments, setComments] = useState('')
+  const [recordDate, setRecordDate] = useState()
 
   const [points, setPoints] = useState([
     { x: 50, y: 100, color: 'green' }, // punto de inicio
@@ -68,9 +70,9 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }, [points])
 
   const handleAnalyze = async () => {
-    setShowImage()
-    setShowStatistics()
-    setIsLoading(true)
+    const confirmMetadata = window.confirm(`La fecha del video es: ${new Date(recordDate)} ¿Desea modificarla?`)
+    if (confirmMetadata) return
+
     const { x: startX, y: startY } = points[0]
     const { x: endX, y: endY } = points[1]
     const start = [startX * factor, startY * factor]
@@ -81,9 +83,15 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       park_name,
       video_name,
       start,
-      end
+      end,
+      record_date: recordDate,
+      comments
+    }
+    if (!park_name || !video_name || !start || !end || !recordDate || !comments) {
+      return window.alert('Campos incompletos')
     }
 
+    setIsLoading(true)
     const res = await fetch(`${BASE_URL}/detect/`, {
       method: 'POST',
       headers: {
@@ -92,10 +100,21 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       body: JSON.stringify(payload)
     })
     const data = await res?.json()
-    if (!res.ok) return window.alert(data?.error || 'Hubo un problema al analizar el video')
     setIsLoading(false)
+    if (!res.ok) {
+      setShowImage(true)
+      return window.alert(data?.error || 'Hubo un problema al analizar el video')
+    }
+    setShowImage(false)
+    setShowStatistics(true)
     setStatistics(data)
   }
+
+  const changeDate = (e) => {
+    setRecordDate(e.target.value)
+  }
+
+  const maxDate = new Date().toISOString().slice(0, 19)
 
   return (
     <div className='flex flex-col p-5 gap-5 text-gray-50 w-full md:w-2/6 justify-center items-center '>
@@ -168,6 +187,20 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
           </Layer>
         </Stage>
       )}
+      <div className='flex flex-col gap-5 w-full text-black'>
+        <input
+          type='datetime-local' name='creation_date' id='creation_date'
+          className='p-2 focus:outline-2 focus:outline-sky-500 w-full'
+          defaultValue={recordDate} onChange={changeDate}
+          max={maxDate}
+        />
+        <textarea
+          name='comments' id='comments'
+          className='p-2 focus:outline-2 focus:outline-sky-500 h-36 w-full'
+          placeholder='Observaciones'
+          defaultValue={comments} onChange={(e) => setComments(e.target.value)}
+        />
+      </div>
       <div className='flex w-full justify-evenly items-center font-medium'>
         <button onClick={handleAnalyze} className='p-2 bg-sky-500 cursor-pointer hover:bg-sky-300'>Analizar video</button>
       </div>

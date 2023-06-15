@@ -80,8 +80,8 @@ function App () {
           {isLoading
             ? <Loading text='Subiendo video' />
             : <Canva
-                imageBase64={image} processedData={data} setShowStatistics={() => setShowStatistics(!showStatistics)}
-                setShowImage={() => setShowImage(!setShowImage)} setIsLoading={(value) => setIsLoading(value)}
+                imageBase64={image} processedData={data} setShowStatistics={(value) => setShowStatistics(value)}
+                setShowImage={(value) => setShowImage(value)} setIsLoading={(value) => setIsLoading(value)}
               />}
         </section>}
       {showStatistics &&
