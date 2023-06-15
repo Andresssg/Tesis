@@ -116,7 +116,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       setIsLoading(false)
       setShowImage(true)
       setShowStatistics(false)
-      window.alert('Error:', error)
+      window.alert('Error al analizar el video')
     }
   }
 
