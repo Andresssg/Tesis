@@ -282,7 +282,8 @@ def verify_directory(directory_name):
     return video_path
 
 def get_duration(video_name):
-    video_path = f"videos\{video_name}"
+    videos_path = verify_directory('videos')
+    video_path = create_path(videos_path,video_name)
     video_clip = VideoFileClip(video_path)
     total_duration = video_clip.duration
     seconds = total_duration % 60
