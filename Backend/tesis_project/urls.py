@@ -19,8 +19,8 @@ from django.urls import path
 from tesisapp.views import *
 
 urlpatterns = [
-    path('/api/admin/', admin.site.urls),
-    path('/api/upload/', video_upload_view, name='upload_video'),
-    path('/api/detect/', detect_people, name='detect_people'),
-    path('/api/download', download_video, name='download_video')
+    path('api/admin/', admin.site.urls),
+    path('api/upload/', video_upload_view, name='upload_video'),
+    path('api/detect/', detect_people, name='detect_people'),
+    path('api/download', download_video, name='download_video')
 ]
