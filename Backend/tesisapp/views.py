@@ -7,29 +7,21 @@ import imghdr
 import math
 import mimetypes
 from moviepy.editor import VideoFileClip
-import magic
 import matplotlib.pyplot as plt
 import numpy as np
-import pytz
 
-from .serializer import ConteosSerializer
-from .serializer import ReportesSerializer
+from .serializer import *
+from .models import *
+from .available_models import MODELS
 
-from .models import Conteos
-from .models import Reportes
-
-import cv2
+import os
 import base64
 import io
 from PIL import Image
 
-import os
 import cv2
 from ultralytics import YOLO
 import supervision as sv
-
-import os
-from .available_models import MODELS
 
 @api_view(['POST'])
 def video_upload_view(request):
