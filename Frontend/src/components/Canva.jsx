@@ -50,6 +50,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       setFactor(3)
       return 3
     }
+    setFactor(1.5)
     return 1.5
   }
 
