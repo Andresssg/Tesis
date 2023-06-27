@@ -94,7 +94,7 @@ def detect_people(request):
     out = cv2.VideoWriter(video_path_out, fourcc, int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
 
     box_annotator = sv.BoxAnnotator(
-        thickness=2,
+        thickness=1,
         text_thickness=1,
         text_scale=0.5
     )
