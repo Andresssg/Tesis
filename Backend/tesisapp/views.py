@@ -29,6 +29,7 @@ from ultralytics import YOLO
 import supervision as sv
 
 import os
+from .available_models import MODELS
 
 @api_view(['POST'])
 def video_upload_view(request):
@@ -80,8 +81,9 @@ def detect_people(request):
     park_name = f"{request.data.get('park_name')}".upper()
     record_date = request.data.get('record_date')
     comments = request.data.get('comments')
+    selected_model = request.data.get('model')
 
-    if not start_point or not end_point or not video_name or not park_name or not record_date or not comments:
+    if not start_point or not end_point or not video_name or not park_name or not record_date or not comments or not selected_model:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
@@ -118,8 +120,10 @@ def detect_people(request):
     frame_count = 0
     last_printed = -1
 
+    new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
+
     #Se importa el modelo 
-    model = YOLO("yolov8n.pt")
+    model = YOLO(new_model)
 
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
