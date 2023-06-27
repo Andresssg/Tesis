@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Stage, Layer, Image, Circle, Line, Text } from 'react-konva'
 import { RequestContext } from '../contexts/RequestContext'
+import ModelList from './ModelList'
 
 function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, setIsLoading }) {
   const { BASE_URL, setStatistics } = useContext(RequestContext)
@@ -10,6 +11,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const [factor, setFactor] = useState(2)
   const [comments, setComments] = useState('')
   const [recordDate, setRecordDate] = useState()
+  const [model, setModel] = useState('COCO')
 
   const [points, setPoints] = useState([
     { x: 50, y: 100, color: 'green' }, // punto de inicio
@@ -39,11 +41,16 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }
 
   const changeSize = (img) => {
+    if (img.width > window.outerWidth) {
+      const value = Math.floor(img.width / window.outerWidth) + 0.5
+      setFactor(value)
+      return value
+    }
     if (img.width >= 1792) {
       setFactor(3)
       return 3
     }
-    return 2
+    return 1.5
   }
 
   useEffect(() => {
@@ -85,9 +92,10 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       start,
       end,
       record_date: recordDate,
-      comments
+      comments,
+      model
     }
-    if (!park_name || !video_name || !start || !end || !recordDate || !comments) {
+    if (!park_name || !video_name || !start || !end || !recordDate || !comments || !model) {
       return window.alert('Campos incompletos')
     }
 
@@ -127,7 +135,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const maxDate = new Date().toISOString().slice(0, 19)
 
   return (
-    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full md:w-2/6 justify-center items-center '>
+    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full md:w-4/6 lg:w-2/6 justify-center items-center'>
       <h2 className='text-2xl uppercase font-medium'>Dibujar línea</h2>
       <details className=' self-baseline'>
         <summary>
@@ -211,8 +219,9 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
           defaultValue={comments} onChange={(e) => setComments(e.target.value)}
         />
       </div>
+      <ModelList setModel={setModel} modelName={model} />
       <div className='flex w-full justify-evenly items-center font-medium'>
-        <button onClick={handleAnalyze} className='p-2 bg-sky-500 cursor-pointer hover:bg-sky-300'>Analizar video</button>
+        <button onClick={handleAnalyze} className='p-2 bg-sky-500 cursor-pointer hover:bg-sky-300 w-full'>Analizar video</button>
       </div>
     </div>
   )

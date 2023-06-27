@@ -8,29 +8,21 @@ import imghdr
 import math
 import mimetypes
 from moviepy.editor import VideoFileClip
-import magic
 import matplotlib.pyplot as plt
 import numpy as np
-import pytz
 from django.db.models import Q
+from .serializer import *
+from .models import *
+from .available_models import MODELS
 
-from .serializer import ConteosSerializer
-from .serializer import ReportesSerializer
-
-from .models import Conteos
-from .models import Reportes
-
-import cv2
+import os
 import base64
 import io
 from PIL import Image
 
-import os
 import cv2
 from ultralytics import YOLO
 import supervision as sv
-
-import os
 
 @api_view(['POST'])
 def video_upload_view(request):
@@ -82,8 +74,9 @@ def detect_people(request):
     park_name = f"{request.data.get('park_name')}".upper()
     record_date = request.data.get('record_date')
     comments = request.data.get('comments')
+    selected_model = request.data.get('model')
 
-    if not start_point or not end_point or not video_name or not park_name or not record_date or not comments:
+    if not start_point or not end_point or not video_name or not park_name or not record_date or not comments or not selected_model:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
@@ -120,8 +113,10 @@ def detect_people(request):
     frame_count = 0
     last_printed = -1
 
+    new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
+
     #Se importa el modelo 
-    model = YOLO("yolov8n-visdrone.pt")
+    model = YOLO(new_model)
 
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
@@ -290,7 +285,8 @@ def verify_directory(directory_name):
     return video_path
 
 def get_duration(video_name):
-    video_path = f"videos\{video_name}"
+    videos_path = verify_directory('')
+    video_path = create_path(videos_path,video_name)
     video_clip = VideoFileClip(video_path)
     total_duration = video_clip.duration
     seconds = total_duration % 60

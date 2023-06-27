@@ -63,13 +63,13 @@ function App () {
   }
 
   return (
-    <article>
+    <article className='flex flex-col items-center justify-center w-full'>
       <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
         <h1 className='font-extrabold'>CESP</h1>
         <h2 className='text-2xl md:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>
       </section>
       <section className='flex flex-col items-center justify-center w-full'>
-        <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full md:w-4/6 lg:w-2/6 '>
+        <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full md:w-4/6 lg:w-2/6'>
           <input
             type='text'
             name='parkname'
@@ -88,7 +88,7 @@ function App () {
             defaultValue={video}
             onChange={(e) => setVideo(e.target.value)}
           />
-          <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer' />
+          <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
         </form>
       </section>
       {showImage && (
