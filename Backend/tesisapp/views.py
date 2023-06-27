@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 from datetime import datetime
+from datetime import time
 import imghdr
 import math
 import mimetypes
@@ -11,6 +12,7 @@ import magic
 import matplotlib.pyplot as plt
 import numpy as np
 import pytz
+from django.db.models import Q
 
 from .serializer import ConteosSerializer
 from .serializer import ReportesSerializer
@@ -86,7 +88,7 @@ def detect_people(request):
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
     
-    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+    """low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
     dir_path_out = verify_directory('out')
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
@@ -155,19 +157,24 @@ def detect_people(request):
     print("Out: ",line_zone.out_count)
 
     out.release()
-    cap.release()
+    cap.release()"""
 
     save = {
         'video_name': video_name,
         'park_name': park_name,
         'record_date': record_date,
-        'comments' : comments
+        'comments' : comments,
+        'hour_grabation': record_date[11:19]
     }
-    respuesta = save_in_db(save, line_zone.in_count, line_zone.out_count)
+    #respuesta = save_in_db(save, line_zone.in_count, line_zone.out_count)
+    respuesta = save_in_db(save, 2, 3)
     if respuesta[0] == "400":
         return Response(respuesta[1].errors, status=400)
     chart = create_chart(park_name)
-    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'chart':chart}, status=201)
+    chart_hour = create_chart_hour(park_name, record_date)
+
+    charts = [chart, chart_hour]
+    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'charts':charts}, status=201)
 
 def is_video(file):
     mime_type = file.content_type
@@ -265,10 +272,11 @@ def save_in_db(save, line_zone_in_count, line_zone_out_count):
     data_request_reportes = {}
     data_request_reportes['id_conteo_personas'] = ultimo_conteo.id_conteos
     data_request_reportes['fecha_hora_analisis'] = analysis_date
-    data_request_reportes['fecha_hora_grabacion'] = save["record_date"]
+    data_request_reportes['fecha_grabacion'] = save["record_date"]
     data_request_reportes['parque'] = save["park_name"]
     data_request_reportes['observaciones'] = save["comments"]
     data_request_reportes['duracion'] = get_duration(save["video_name"])
+    data_request_reportes['hora_grabacion'] = save["hour_grabation"]
     
     serializer_reportes = ReportesSerializer(data=data_request_reportes)
     if serializer_reportes.is_valid():
@@ -290,21 +298,86 @@ def get_duration(video_name):
     minutes = math.floor(total_duration / 60 ) % 60
     hours = math.floor(aux_minutes / 60)
     duration = f'{f"0{hours}" if hours<10 else hours}:{f"0{minutes}" if minutes<10 else minutes}:{f"0{seconds}" if seconds<10 else seconds}'
-
-    print(duration)
     return duration
 
 def create_path(path, file_name):
     file_path = os.path.join(path, file_name)
     return file_path
 
+def create_chart_hour(park_name, record_date):
+
+    grabation_hour = []
+    ingresos = []
+    salidas = []
+    hora = []
+    hora_grabacion = record_date[11:13]
+
+    if int(hora_grabacion) < 12 and int(hora_grabacion)>= 6:
+        hora = ["06:01:00","12:00:00"]
+    elif int(hora_grabacion) > 12 and int(hora_grabacion) < 18:
+        hora = ["12:01:00","18:00:00"]
+    else:
+        hora = ["18:01:00","06:00:00"]
+
+    horaInicio = int(hora[0][0:2])
+    minutoInicio = int(hora[0][3:5])
+
+    horaFinal = int(hora[1][0:2])
+    minutoFinal = int(hora[1][3:5])
+
+    hora_inicio = time(horaInicio, minutoInicio)
+    hora_final = time(horaFinal, minutoFinal)
+
+    if horaInicio== 18:
+        parques = Reportes.objects.filter(
+                Q(hora_grabacion__gte=hora_inicio) | Q(hora_grabacion__lte=hora_final),
+                parque__icontains=park_name,
+                )
+    else:
+        parques = Reportes.objects.filter(
+            parque__icontains=park_name,
+            hora_grabacion__range=(str(hora_inicio), str(hora_final))
+        )
+
+    for reporte in parques:
+        hour = reporte.hora_grabacion.hour
+        conteo = reporte.id_conteo_personas
+        ingresos.append(conteo.ingreso_personas)
+        salidas.append(conteo.salida_personas)
+        grabation_hour.append(hour)
+    
+    fig, ax = plt.subplots()
+    bar_width = 0.15
+    index = np.arange(len(grabation_hour))
+    ax.bar(index, ingresos, bar_width, label='Personas que ingresan', color ="green")
+    ax.bar(index + bar_width, salidas, bar_width, label='Personas que salen', color ="red")
+
+    ax.set_xlabel('Hora')
+    ax.set_ylabel('Cantidad de personas')
+    ax.set_title(f'Ingresos y Salidas horario: {hora[0]} - {hora[1]}')
+
+    ax.set_xticks(index + bar_width / 2)
+    ax.set_xticklabels(grabation_hour, rotation=45, ha='right')
+    ax.legend()
+    plt.tight_layout()
+
+    chart_buffer = io.BytesIO()
+    plt.savefig(chart_buffer, format='png')
+    chart_buffer.seek(0)
+
+    encoded_image = base64.b64encode(chart_buffer.getvalue()).decode('utf-8')
+    image_format = imghdr.what(None, h=chart_buffer.getvalue())
+    image_base64 = f"data:{image_format};base64,{encoded_image}"
+    
+    return image_base64
+        
 def create_chart(park_name):
-    reportes = Reportes.objects.filter(parque=park_name)
+    reportes_nombre_parque = Reportes.objects.filter(parque=park_name)
     fechas = []
     ingresos = []
     salidas = []
 
-    for reporte in reportes:
+    for reporte in reportes_nombre_parque:
         conteo = reporte.id_conteo_personas
         fecha = f"{reporte.fecha_hora_analisis}"
         fecha = fecha.replace('+00:00', '')
