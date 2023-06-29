@@ -17,19 +17,18 @@ function App () {
 
   const handleUpload = (e) => {
     e.preventDefault()
-    const form = new FormData(e.target)
-    const formParkName = form.get('parkname')
-    const formVideo = form.get('video')
-
-    if (!formParkName || !formVideo.size) {
+    if (!parkName || !video.size) {
       window.alert('Por favor complete los campos')
       return
     }
 
-    if (prevVideo === formVideo && !window.confirm('¿Desea subir nuevamente el mismo video?')) {
+    if (prevVideo === video && !window.confirm('¿Desea subir nuevamente el mismo video?')) {
       return
     }
-    setPrevVideo(formVideo)
+    const form = new FormData()
+    form.append('parkname', parkName)
+    form.append('video', video)
+    setPrevVideo(video)
     getData(form)
   }
 
@@ -66,51 +65,53 @@ function App () {
     <article className='flex flex-col items-center justify-center w-full'>
       <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
         <h1 className='font-extrabold'>CESP</h1>
-        <h2 className='text-2xl md:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>
+        <h2 className='text-2xl md:w-9/12 lg:w-8/12 xl:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>
       </section>
-      <section className='flex flex-col items-center justify-center w-full'>
-        <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full md:w-4/6 lg:w-2/6'>
-          <input
-            type='text'
-            name='parkname'
-            id='parkname'
-            placeholder='Ingrese el nombre del parque'
-            className='p-2 focus:outline-2 focus:outline-sky-500'
-            defaultValue={parkName}
-            onChange={(e) => setParkName(e.target.value)}
-          />
-          <input
-            type='file'
-            name='video'
-            id='video'
-            accept='video/*'
-            className='text-gray-300 cursor-pointer'
-            defaultValue={video}
-            onChange={(e) => setVideo(e.target.value)}
-          />
-          <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
-        </form>
-      </section>
-      {showImage && (
+      <div className='flex flex-col items-center justify-center w-full lg:w-4/5 xl:w-3/4 2xl:w-3/6 md:px-10 lg:max-w-4xl'>
         <section className='flex flex-col items-center justify-center w-full'>
-          {isLoading
-            ? <Loading text='Subiendo video' />
-            : <Canva
-                imageBase64={image}
-                processedData={data}
-                setShowStatistics={(value) => setShowStatistics(value)}
-                setShowImage={(value) => setShowImage(value)}
-                setIsLoading={(value) => setIsLoading(value)}
-              />}
+          <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full'>
+            <input
+              type='text'
+              name='parkname'
+              id='parkname'
+              placeholder='Ingrese el nombre del parque'
+              className='p-2 focus:outline-2 focus:outline-sky-500'
+              defaultValue={parkName}
+              onChange={(e) => setParkName(e.target.value.trim())}
+            />
+            <input
+              type='file'
+              name='video'
+              id='video'
+              accept='video/*'
+              className='text-gray-300 cursor-pointer'
+              defaultValue={video}
+              onChange={(e) => setVideo(e.target.files[0])}
+            />
+            <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
+          </form>
         </section>
-      )}
-      {showStatistics && (
-        <section className='flex flex-col items-center justify-center w-full'>
-          {isLoading
-            ? <Loading text='Analizando video' />
-            : <Statistics videoName={data?.video_name} />}
-        </section>
-      )}
+        {showImage && (
+          <section className='flex flex-col items-center justify-center w-full'>
+            {isLoading
+              ? <Loading text='Subiendo video' />
+              : <Canva
+                  imageBase64={image}
+                  processedData={data}
+                  setShowStatistics={(value) => setShowStatistics(value)}
+                  setShowImage={(value) => setShowImage(value)}
+                  setIsLoading={(value) => setIsLoading(value)}
+                />}
+          </section>
+        )}
+        {showStatistics && (
+          <section className='flex flex-col items-center justify-center w-full'>
+            {isLoading
+              ? <Loading text='Analizando video' />
+              : <Statistics videoName={data?.video_name} />}
+          </section>
+        )}
+      </div>
     </article>
   )
 }

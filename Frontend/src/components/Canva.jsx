@@ -41,17 +41,18 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }
 
   const changeSize = (img) => {
+    let value = 0
     if (img.width > window.outerWidth) {
-      const value = Math.floor(img.width / window.outerWidth) + 0.5
+      value = Math.floor(img.width / window.outerWidth) + 1.3
       setFactor(value)
-      return value
+    } else if (img.width >= 1792) {
+      value = 2.5
+      setFactor(value)
+    } else {
+      value = 1.5
+      setFactor(value)
     }
-    if (img.width >= 1792) {
-      setFactor(3)
-      return 3
-    }
-    setFactor(1.5)
-    return 1.5
+    return value
   }
 
   useEffect(() => {
@@ -136,7 +137,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const maxDate = new Date().toISOString().slice(0, 19)
 
   return (
-    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full md:w-4/6 lg:w-2/6 justify-center items-center'>
+    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full justify-center items-center'>
       <h2 className='text-2xl uppercase font-medium'>Dibujar línea</h2>
       <details className=' self-baseline'>
         <summary>
