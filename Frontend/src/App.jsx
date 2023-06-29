@@ -62,7 +62,7 @@ function App () {
   }
 
   return (
-    <article className='flex flex-col items-center justify-center w-full'>
+    <article className='flex flex-col items-center justify-center w-full py-8'>
       <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
         <h1 className='font-extrabold'>CESP</h1>
         <h2 className='text-2xl md:w-9/12 lg:w-8/12 xl:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>

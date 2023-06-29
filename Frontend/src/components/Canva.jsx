@@ -2,6 +2,15 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Stage, Layer, Image, Circle, Line, Text } from 'react-konva'
 import { RequestContext } from '../contexts/RequestContext'
 import ModelList from './ModelList'
+import Details from './Details'
+import horizontal1 from '../assets/Linea-horizontal1.gif'
+import horizontal2 from '../assets/Linea-horizontal2.gif'
+import vertical1 from '../assets/Linea-vertical1.gif'
+import vertical2 from '../assets/Linea-vertical2.gif'
+import bienHorizontal from '../assets/Linea-bien1.gif'
+import bienVertical from '../assets/Linea-bien2.gif'
+import malHorizontal from '../assets/Linea-mal1.gif'
+import malVertical from '../assets/Linea-mal2.gif'
 
 function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, setIsLoading }) {
   const { BASE_URL, setStatistics } = useContext(RequestContext)
@@ -136,20 +145,43 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
 
   const maxDate = new Date().toISOString().slice(0, 19)
 
+  const details = [
+    {
+      question: '¿Cómo se ubica la línea?',
+      description: "Hay dos puntos uno que es el <span class='text-green-500 font-bold'>INICIAL</span> y el segundo que es el <span class='text-red-500 font-bold'>FINAL</span>",
+      steps: [
+        'Para mover un punto mantenga el click izquierdo presionado sobre él y arrastrelo.',
+        'Para soltar el punto deje de mantener el click.',
+        'Una vez tenga los puntos definidos y vea la línea en la posición deseada, complete los campos restantes y haga click en Analizar el video.'
+      ],
+      gifs: [{ name: 'Punto inicial a la izquierda y punto final a la derecha.', uri: horizontal1 },
+        { name: 'Punto inicial a la derecha y punto final a la izquierda.', uri: horizontal2 },
+        { name: 'Punto inicial abajo y punto final arriba.', uri: vertical1 },
+        { name: 'Punto inicial arriba y punto final abajo.', uri: vertical2 }],
+      note: 'Estos son algunos de los casos que se pueden presentar.'
+    },
+    {
+      question: '¿Cómo funciona el conteo?',
+      description: `Para que se realice el conteo, es necesario que el cuadro que envuelve a una persona,
+      cruce de lado a lado la línea. De lo contrario, el contador no aumentará`,
+      steps: [],
+      gifs: [
+        { name: 'Con la línea horizontal, ubicada correctamente', uri: bienHorizontal },
+        { name: 'Con la línea vertical. ubicada correctamente', uri: bienVertical },
+        { name: 'Con la línea horizontal, ubicada erroneamente', uri: malHorizontal },
+        { name: 'Con la línea vertical. ubicada erroneamente', uri: malVertical }
+      ]
+    }
+
+  ]
+
   return (
     <div className='flex flex-col p-5 gap-5 text-gray-50 w-full justify-center items-center'>
       <h2 className='text-2xl uppercase font-medium'>Dibujar línea</h2>
-      <details className=' self-baseline'>
-        <summary>
-          ¿Qué hacer?
-        </summary>
-        <p className='font-bold'>Hay dos puntos uno que es el <span className='text-green-500'>INICIO</span> y el segundo que es el <span className='text-red-500'>FINAL</span> </p>
-        <ol className='list-decimal px-4'>
-          <li>Para mover un punto mantenga el click presionado sobre él y arrastrelo.</li>
-          <li>Para soltar el punto deje de mantener el click.</li>
-          <li>Una vez tenga los puntos definidos y vea la linea en la posición deseada, haga click en Analizar el video</li>
-        </ol>
-      </details>
+      <div className='flex justify-evenly flex-wrap w-full'>
+        {details.map((detail, i) => <Details key={`detail-${i}`} detail={detail} />
+        )}
+      </div>
       {image && (
         <Stage width={imageSize.width} height={imageSize.height}>
           <Layer>
