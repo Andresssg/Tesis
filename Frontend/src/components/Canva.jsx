@@ -41,17 +41,18 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   }
 
   const changeSize = (img) => {
+    let value = 0
     if (img.width > window.outerWidth) {
-      const value = Math.floor(img.width / window.outerWidth) + 0.5
+      value = Math.floor(img.width / window.outerWidth) + 1.3
       setFactor(value)
-      return value
+    } else if (img.width >= 1792) {
+      value = 2.5
+      setFactor(value)
+    } else {
+      value = 1.5
+      setFactor(value)
     }
-    if (img.width >= 1792) {
-      setFactor(3)
-      return 3
-    }
-    setFactor(1.5)
-    return 1.5
+    return value
   }
 
   useEffect(() => {
