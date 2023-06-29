@@ -374,7 +374,7 @@ def create_chart(park_name):
 
     for reporte in reportes_nombre_parque:
         conteo = reporte.id_conteo_personas
-        fecha = f"{reporte.fecha_hora_analisis}"
+        fecha = f"{reporte.fecha_grabacion}"
         fecha = fecha.replace('+00:00', '')
         fechas.append(fecha)
         ingresos.append(conteo.ingreso_personas)
