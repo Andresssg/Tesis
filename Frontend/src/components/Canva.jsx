@@ -136,7 +136,7 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
   const maxDate = new Date().toISOString().slice(0, 19)
 
   return (
-    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full md:w-4/6 lg:w-2/6 justify-center items-center'>
+    <div className='flex flex-col p-5 gap-5 text-gray-50 w-full justify-center items-center'>
       <h2 className='text-2xl uppercase font-medium'>Dibujar línea</h2>
       <details className=' self-baseline'>
         <summary>

@@ -22,10 +22,12 @@ function Statistics ({ videoName }) {
   }
 
   return (
-    <div className='flex flex-col items-center justify-center gap-4 md:w-2/6 lg:w-4/6 text-gray-50 font-medium text-2xl p-5'>
+    <div className='flex flex-col items-center justify-center gap-4 text-gray-50 font-medium text-2xl p-5 w-full'>
       <h2>Conteo <span className='text-green-500'>Ingreso</span>: {statistics?.conteo?.ingreso_personas}</h2>
       <h2>Conteo <span className='text-red-500'>Salida</span>: {statistics?.conteo?.salida_personas}</h2>
-      {statistics?.charts.map((chart, i) => <img key={`chart-${i}`} src={chart} alt='Gráfica' />)}
+      <div className='flex items-center flex-wrap justify-center xl:w-[85vw] 2xl:w-[80vw] py-5 px-2 xl:gap-x-5'>
+        {statistics?.charts.map((chart, i) => <img key={`chart-${i}`} src={chart} alt='Gráfica' className='xl:w-[calc(49%-20px)] 2xl:max-w-2xl' />)}
+      </div>
       <div className='flex w-full justify-evenly items-center font-medium text-base'>
         <button onClick={handleDownload} className='p-2 bg-sky-500 cursor-pointer hover:bg-sky-300'>Descargar video</button>
       </div>
