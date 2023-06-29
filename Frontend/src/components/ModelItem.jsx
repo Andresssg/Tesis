@@ -4,7 +4,7 @@ function ModelItem ({ modelName, description, icon, setModel, isSelected }) {
   }
   return (
     <div
-      className={`flex w-full p-2 border items-center justify-start gap-x-3 
+      className={`flex w-80 min-h-[9rem] p-2 border items-center gap-x-3
     border-slate-200 rounded-lg hover:cursor-pointer md:text-lg ${isSelected && 'bg-sky-500'}`} onClick={handleClick}
     >
       <img src={icon} alt='' className='w-10' />
