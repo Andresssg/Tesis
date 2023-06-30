@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,6 +80,24 @@ WSGI_APPLICATION = 'tesis_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+"""
+certificate_name = 'certificate.pem'
+certificate_path = os.path.join(BASE_DIR,certificate_name)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tesis',
+        'USER': 'tesisadmin',
+        'HOST': 'tesisdb.mysql.database.azure.com',
+        'PORT': '3306',
+        'PASSWORD': 'Admin123',
+        'OPTIONS': {
+            'ssl': {'ca': f'{certificate_path}'}
+        }
+    }
+}"""
 
 DATABASES = {
     'default': {
