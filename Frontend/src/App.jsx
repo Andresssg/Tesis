@@ -1,12 +1,14 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import Loading from './components/Loading'
 import Canva from './components/Canva'
 import Statistics from './components/Statistics'
 import { RequestContext } from './contexts/RequestContext'
+import ParkList from './components/ParksList'
 
 function App () {
   const [isLoading, setIsLoading] = useState(true)
   const [showImage, setShowImage] = useState(false)
+  const [showParksList, setShowParksList] = useState(false)
   const [showStatistics, setShowStatistics] = useState(false)
   const [parkName, setParkName] = useState('')
   const [video, setVideo] = useState('')
@@ -14,11 +16,17 @@ function App () {
   const { BASE_URL } = useContext(RequestContext)
   const [data, setData] = useState(null)
   const [prevVideo, setPrevVideo] = useState('')
+  const [filter, setFilter] = useState('')
 
   const handleUpload = (e) => {
     e.preventDefault()
-    if (!parkName || !video.size) {
+    if (!parkName || !video.size || !filter) {
       window.alert('Por favor complete los campos')
+      return
+    }
+
+    if (parkName !== filter) {
+      window.alert('El parque seleccionado no corresponde a ninguno en la lista, por favor seleccione uno.')
       return
     }
 
@@ -61,6 +69,19 @@ function App () {
     }
   }
 
+  const handleParkName = (value) => {
+    setParkName(value)
+  }
+
+  const handleInputChange = (e) => {
+    setShowParksList(true)
+    setFilter(e.target.value.trim().toUpperCase())
+  }
+
+  useEffect(() => {
+    setFilter(parkName)
+  }, [parkName])
+
   return (
     <article className='flex flex-col items-center justify-center w-full py-8'>
       <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
@@ -69,16 +90,26 @@ function App () {
       </section>
       <div className='flex flex-col items-center justify-center w-full lg:w-4/5 xl:w-3/4 2xl:w-3/6 md:px-10 lg:max-w-4xl'>
         <section className='flex flex-col items-center justify-center w-full'>
-          <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full'>
+          <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full relative'>
             <input
               type='text'
               name='parkname'
               id='parkname'
-              placeholder='Ingrese el nombre del parque'
-              className='p-2 focus:outline-2 focus:outline-sky-500'
-              defaultValue={parkName}
-              onChange={(e) => setParkName(e.target.value.trim())}
+              placeholder='¿Qué parque desea analizar?'
+              value={filter}
+              className='w-full p-2 focus:outline-2 focus:outline-sky-500'
+              onClick={() => setShowParksList(true)}
+              onClickCapture={() => setShowParksList(true)}
+              onChange={(e) => {
+                handleInputChange(e)
+              }}
+              autoComplete='off'
             />
+            {showParksList &&
+              <ParkList
+                handleShowParksList={() => setShowParksList(false)}
+                filter={filter} setParkName={(value) => handleParkName(value)}
+              />}
             <input
               type='file'
               name='video'
