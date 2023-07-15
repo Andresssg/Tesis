@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import list from '../assets/parks.json'
 
-function ParkList ({ handleShowParksList, filter = '', setParkName }) {
+function ParkList ({ handleShowParksList, filter = '', setParkName, setFilter }) {
   const [parks, setParks] = useState([...list])
   const setName = (value) => {
     handleShowParksList()
     setParkName(value)
+    setFilter(value)
   }
 
   const filterParks = () => {
     const newList = list.filter(park => {
-      return park.name.includes(filter) || park.code.includes(filter)
+      return park.name.includes(filter.trim()) || park.code.includes(filter.trim())
     })
     setParks(newList)
   }
@@ -19,8 +20,7 @@ function ParkList ({ handleShowParksList, filter = '', setParkName }) {
 
   return (
     <div
-      className='left-0 absolute top-16 flex max-h-96 w-full flex-col gap-y-2 overflow-auto bg-gray-200 p-4 py-6'
-      onMouseLeave={handleShowParksList}
+      className='left-0 absolute top-16 flex max-h-96 w-full flex-col gap-y-2 overflow-auto bg-gray-200 p-4 py-6 z-20'
     >
       {parks?.map(
         park => {

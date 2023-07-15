@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useState } from 'react'
 import Loading from './components/Loading'
 import Canva from './components/Canva'
 import Statistics from './components/Statistics'
@@ -25,7 +25,7 @@ function App () {
       return
     }
 
-    if (parkName !== filter) {
+    if (parkName !== filter.trim()) {
       window.alert('El parque seleccionado no corresponde a ninguno en la lista, por favor seleccione uno.')
       return
     }
@@ -75,12 +75,16 @@ function App () {
 
   const handleInputChange = (e) => {
     setShowParksList(true)
-    setFilter(e.target.value.trim().toUpperCase())
+    setFilter(e.target.value.toUpperCase())
   }
 
-  useEffect(() => {
-    setFilter(parkName)
-  }, [parkName])
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      setShowParksList(false)
+    }, 500)
+  }
+
+  // realizar el cambio con el codigo del parque
 
   return (
     <article className='flex flex-col items-center justify-center w-full py-8'>
@@ -95,11 +99,11 @@ function App () {
               type='text'
               name='parkname'
               id='parkname'
-              placeholder='¿Qué parque desea analizar?'
+              placeholder='Ingrese el nombre o código del parque'
               value={filter}
               className='w-full p-2 focus:outline-2 focus:outline-sky-500'
               onClick={() => setShowParksList(true)}
-              onClickCapture={() => setShowParksList(true)}
+              onBlur={handleInputBlur}
               onChange={(e) => {
                 handleInputChange(e)
               }}
@@ -109,6 +113,7 @@ function App () {
               <ParkList
                 handleShowParksList={() => setShowParksList(false)}
                 filter={filter} setParkName={(value) => handleParkName(value)}
+                setFilter={(value) => setFilter(value)}
               />}
             <input
               type='file'
