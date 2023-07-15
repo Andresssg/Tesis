@@ -1,16 +1,18 @@
 import ModelItem from './ModelItem'
+import droneIcon from '../assets/drone-icon.png'
+import infiniteIcon from '../assets/infinite-icon.png'
 
 function ModelList ({ setModel, modelName }) {
   const models = [
     {
       name: 'COCO',
       description: 'Este modelo funciona para todos los casos.',
-      icon: 'https://www.freepnglogos.com/uploads/infinity-symbol-png/infinity-symbol-clipart-download-best-infinity-14.png'
+      icon: infiniteIcon
     },
     {
       name: 'VISDRONE',
       description: 'Si la vista es aérea/elevada, este modelo es ideal para esas condiciones.',
-      icon: 'https://cdn-icons-png.flaticon.com/512/1830/1830867.png'
+      icon: droneIcon
     }
   ]
   return (
