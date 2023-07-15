@@ -1,6 +1,6 @@
 import ModelItem from './ModelItem'
-import droneIcon from '../assets/drone-icon.png'
-import infiniteIcon from '../assets/infinite-icon.png'
+import droneIcon from '../assets/drone-icon.webp'
+import infiniteIcon from '../assets/infinite-icon.webp'
 
 function ModelList ({ setModel, modelName }) {
   const models = [
