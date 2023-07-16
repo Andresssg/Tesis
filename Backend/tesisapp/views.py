@@ -3,12 +3,19 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.files.storage import default_storage
 
+import json
 import mimetypes
 from .utils import *
 
 from .serializer import *
 from .models import *
 from .available_models import MODELS
+
+@api_view(['GET'])
+def get_park_list(request):
+    parks = Parks.objects.using('parks').all()
+    serializer = ParksSerializer(parks, many=True)
+    return Response({'length':len(serializer.data), 'data': serializer.data}, status=200)
 
 @api_view(['POST'])
 def video_upload_view(request):
