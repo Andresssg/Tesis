@@ -1,6 +1,10 @@
 from rest_framework import serializers
-from .models import Conteos
-from .models import Reportes
+from .models import *
+
+class ParksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Parks
+        fields = "__all__"
 
 class ConteosSerializer(serializers.ModelSerializer):
     class Meta:

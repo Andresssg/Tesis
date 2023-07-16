@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import time
 import imghdr
 import math
+import json
 
 from django.db.models import Q
 from moviepy.editor import VideoFileClip
@@ -248,3 +249,15 @@ def paint_chart(data):
     image_format = imghdr.what(None, h=chart_buffer.getvalue())
     image_base64 = f"data:{image_format};base64,{encoded_image}"
     return image_base64
+
+def load_parks_in_db():
+    file_path = os.path.join(os.getcwd(),'parks.json')
+
+    with open(file_path, encoding='utf-8') as json_file:
+        parks = json.load(json_file)
+    
+    print('Archivo leido')
+    serializer = ParksSerializer(data=parks, many=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    print('Guardados')
