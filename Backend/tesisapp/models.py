@@ -3,6 +3,19 @@ from django.utils import timezone
 import pytz
 
 # Create your models here.
+class Parks(models.Model):
+    code = models.TextField(null=True)
+    name = models.TextField(null=True)
+    scale = models.TextField(null=True)
+    address = models.TextField(null=True)
+    locality = models.TextField(null=True)
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'parks'
+
 class Conteos(models.Model):
     id_conteos = models.AutoField(primary_key = True)
     ingreso_personas = models.IntegerField()
@@ -10,6 +23,9 @@ class Conteos(models.Model):
     
     def __str__(self):
         return self.id_conteos
+    
+    class Meta:
+        db_table = 'conteos'
     
 class Reportes(models.Model):
     id_reportes = models.AutoField(primary_key = True)
@@ -29,3 +45,6 @@ class Reportes(models.Model):
     
     def __str__(self):
         return str(self.id_reportes)
+    
+    class Meta:
+        db_table = 'reportes'
