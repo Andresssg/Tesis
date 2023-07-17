@@ -15,7 +15,7 @@ from .available_models import MODELS
 def get_park_list(request):
     parks = Parks.objects.using('parks').all()
     serializer = ParksSerializer(parks, many=True)
-    return Response({'length':len(serializer.data), 'data': serializer.data}, status=200)
+    return Response({'length':len(serializer.data), 'parks': serializer.data}, status=200)
 
 @api_view(['POST'])
 def video_upload_view(request):
