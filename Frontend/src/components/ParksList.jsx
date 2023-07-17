@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
-import list from '../assets/parks.json'
+import { useEffect, useState, useRef, useContext } from 'react'
 import ParkItem from './ParkItem'
+import { RequestContext } from '../contexts/RequestContext'
 
 function ParkList ({ handleShowParksList, filter = '', setParkName, setFilter }) {
-  const [parks, setParks] = useState([])
+  const { parks } = useContext(RequestContext)
+  const [filteredParks, setFilteredParks] = useState([])
   const [startIndex, setStartIndex] = useState(0)
   const [endIndex, setEndIndex] = useState(10)
   const listRef = useRef(null)
@@ -15,10 +16,10 @@ function ParkList ({ handleShowParksList, filter = '', setParkName, setFilter })
   }
 
   const filterParks = () => {
-    const newList = list.filter((park) => {
+    const newList = parks.filter((park) => {
       return park.name.includes(filter.trim()) || park.code.includes(filter.trim())
     })
-    setParks(newList)
+    setFilteredParks(newList)
     setStartIndex(0)
     setEndIndex(10)
   }
@@ -43,7 +44,7 @@ function ParkList ({ handleShowParksList, filter = '', setParkName, setFilter })
     }
   }, [])
 
-  const visibleParks = parks.slice(startIndex, endIndex)
+  const visibleParks = filteredParks.slice(startIndex, endIndex)
 
   return (
     <div
