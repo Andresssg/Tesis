@@ -103,21 +103,13 @@ def detect_people(request):
         text_scale=0.5,
     )
 
-    frame_count = 0
-    last_printed = -1
-
-    new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
-
     #Se importa el modelo 
+    new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
     model = YOLO(new_model)
 
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
-        percentage = round(frame_count / total_frame * 100)
-        if percentage % 1 == 0 and percentage != last_printed:
-            print(f"{percentage}%")
-            last_printed = percentage
-
+        
         #Se obtiene el frame
         frame = result.orig_img
         #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
@@ -138,8 +130,6 @@ def detect_people(request):
         line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
 
         out.write(frame)
-
-        frame_count += 1
         
     print("In: ", line_zone.in_count)
     print("Out: ",line_zone.out_count)
