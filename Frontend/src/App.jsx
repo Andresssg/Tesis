@@ -17,6 +17,7 @@ function App () {
   const [data, setData] = useState(null)
   const [prevVideo, setPrevVideo] = useState('')
   const [filter, setFilter] = useState('')
+  const [duration, setDuration] = useState('')
 
   const handleUpload = (e) => {
     e.preventDefault()
@@ -33,9 +34,14 @@ function App () {
     if (prevVideo === video && !window.confirm('¿Desea subir nuevamente el mismo video?')) {
       return
     }
+
+    if (duration > 1200) {
+      return window.alert('el video no puede tener una duración mayor a 20 minutos')
+    }
     const form = new FormData()
     form.append('parkname', parkName)
     form.append('video', video)
+    form.append('duration', duration)
     setPrevVideo(video)
     getData(form)
   }
@@ -84,7 +90,21 @@ function App () {
     }, 500)
   }
 
-  // realizar el cambio con el codigo del parque
+  const handleVideoInput = (e) => {
+    const rawVideo = e.target.files[0]
+    if (!rawVideo) { return }
+    setVideo(rawVideo)
+    const videoURL = URL.createObjectURL(rawVideo)
+
+    const videoElement = document.createElement('video')
+    videoElement.setAttribute('src', videoURL)
+
+    videoElement.onloadedmetadata = function () {
+      URL.revokeObjectURL(videoURL)
+      const durationInSeconds = videoElement.duration
+      setDuration(parseInt(durationInSeconds))
+    }
+  }
 
   return (
     <article className='flex flex-col items-center justify-center w-full py-8'>
@@ -122,7 +142,7 @@ function App () {
               accept='video/*'
               className='text-gray-300 cursor-pointer'
               defaultValue={video}
-              onChange={(e) => setVideo(e.target.files[0])}
+              onChange={(e) => handleVideoInput(e)}
             />
             <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
           </form>
