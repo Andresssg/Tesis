@@ -10,6 +10,7 @@ from .utils import *
 from .serializer import *
 from .models import *
 from .available_models import MODELS
+from fixed_bugs.PartialLines import LineZoneFixed
 
 @api_view(['GET'])
 def get_park_list(request):
@@ -68,6 +69,7 @@ def detect_people(request):
     record_date = request.data.get('record_date')
     comments = request.data.get('comments')
     selected_model = request.data.get('model')
+    is_partial = request.data.get('partial')
 
     if not start_point or not end_point or not video_name or not park_name or not record_date or not comments or not selected_model:
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
@@ -95,7 +97,10 @@ def detect_people(request):
     END = sv.Point(end_point[0], end_point[1])
     
     #Se definen los estilos de la linea y se colocan los puntos inicial y final
-    line_zone = sv.LineZone(start=START, end=END)
+    if is_partial:
+        line_zone = LineZoneFixed(start=START, end=END)
+    else:
+        line_zone = sv.LineZone(start=START, end=END)
 
     line_zone_annotator = sv.LineZoneAnnotator(
         thickness=2,
@@ -107,9 +112,14 @@ def detect_people(request):
     new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
     model = YOLO(new_model)
 
+    frame_count = 0
+    last_printed = -1
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
-        
+        percentage = round(frame_count / total_frame * 100)
+        if percentage % 1 == 0 and percentage != last_printed:
+            print(f"{percentage}%")
+            last_printed = percentage
         #Se obtiene el frame
         frame = result.orig_img
         #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
@@ -130,6 +140,7 @@ def detect_people(request):
         line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
 
         out.write(frame)
+        frame_count += 1
         
     print("In: ", line_zone.in_count)
     print("Out: ",line_zone.out_count)
