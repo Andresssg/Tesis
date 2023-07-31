@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Stage, Layer, Image, Circle, Line, Text } from 'react-konva'
 import { RequestContext } from '../contexts/RequestContext'
-import ModelList from './ModelList'
 import Details from './Details'
 import horizontal1 from '../assets/Linea-horizontal1.gif'
 import horizontal2 from '../assets/Linea-horizontal2.gif'
@@ -13,14 +12,13 @@ import malHorizontal from '../assets/Linea-mal1.gif'
 import malVertical from '../assets/Linea-mal2.gif'
 
 function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, setIsLoading }) {
-  const { BASE_URL, setStatistics } = useContext(RequestContext)
+  const { BASE_URL, setStatistics, model, isPartial } = useContext(RequestContext)
   const [image, setImage] = useState(null)
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   const [lines, setLines] = useState([])
   const [factor, setFactor] = useState(2)
   const [comments, setComments] = useState('')
   const [recordDate, setRecordDate] = useState()
-  const [model, setModel] = useState('COCO')
 
   const [points, setPoints] = useState([
     { x: 50, y: 100, color: 'green' }, // punto de inicio
@@ -104,7 +102,8 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
       end,
       record_date: recordDate,
       comments,
-      model
+      model,
+      partial: isPartial
     }
     if (!park_name || !video_name || !start || !end || !recordDate || !comments || !model) {
       return window.alert('Campos incompletos')
@@ -253,7 +252,6 @@ function Canva ({ imageBase64, processedData, setShowStatistics, setShowImage, s
           defaultValue={comments} onChange={(e) => setComments(e.target.value)}
         />
       </div>
-      <ModelList setModel={setModel} modelName={model} />
       <div className='flex w-full justify-evenly items-center font-medium'>
         <button onClick={handleAnalyze} className='p-2 bg-sky-500 cursor-pointer hover:bg-sky-300 w-full'>Analizar video</button>
       </div>

@@ -4,6 +4,7 @@ import Canva from './components/Canva'
 import Statistics from './components/Statistics'
 import { RequestContext } from './contexts/RequestContext'
 import ParkList from './components/ParksList'
+import Sidebar from './components/sidebarcomponents/Sidebar'
 
 function App () {
   const [isLoading, setIsLoading] = useState(true)
@@ -107,68 +108,71 @@ function App () {
   }
 
   return (
-    <article className='flex flex-col items-center justify-center w-full py-8'>
-      <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
-        <h1 className='font-extrabold'>CESP</h1>
-        <h2 className='text-2xl md:w-9/12 lg:w-8/12 xl:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>
-      </section>
-      <div className='flex flex-col items-center justify-center w-full lg:w-4/5 xl:w-3/4 2xl:w-3/6 md:px-10 lg:max-w-4xl'>
-        <section className='flex flex-col items-center justify-center w-full'>
-          <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full relative'>
-            <input
-              type='text'
-              name='parkname'
-              id='parkname'
-              placeholder='Ingrese el nombre o código del parque'
-              value={filter}
-              className='w-full p-2 focus:outline-2 focus:outline-sky-500'
-              onClick={() => setShowParksList(true)}
-              onBlur={handleInputBlur}
-              onChange={(e) => {
-                handleInputChange(e)
-              }}
-              autoComplete='off'
-            />
-            {showParksList &&
-              <ParkList
-                handleShowParksList={() => setShowParksList(false)}
-                filter={filter} setParkName={(value) => handleParkName(value)}
-                setFilter={(value) => setFilter(value)}
-              />}
-            <input
-              type='file'
-              name='video'
-              id='video'
-              accept='video/*'
-              className='text-gray-300 cursor-pointer'
-              defaultValue={video}
-              onChange={(e) => handleVideoInput(e)}
-            />
-            <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
-          </form>
+    <div className='flex items-start relative'>
+      <Sidebar />
+      <article className='flex flex-col items-center justify-start w-full py-8 overflow-y-auto h-screen'>
+        <section className='flex flex-col justify-center items-center w-full p-10 gap-5 text-4xl text-center text-gray-50'>
+          <h1 className='font-extrabold'>CESP</h1>
+          <h2 className='text-2xl md:w-9/12 lg:w-8/12 xl:w-4/12'>Sistema de carga de videos de parques para conteo de ingreso y salida de personas con IA</h2>
         </section>
-        {showImage && (
+        <div className='flex flex-col items-center justify-center w-full lg:w-4/5 xl:w-3/4 2xl:w-3/6 md:px-10 lg:max-w-4xl'>
           <section className='flex flex-col items-center justify-center w-full'>
-            {isLoading
-              ? <Loading text='Subiendo video' />
-              : <Canva
-                  imageBase64={image}
-                  processedData={data}
-                  setShowStatistics={(value) => setShowStatistics(value)}
-                  setShowImage={(value) => setShowImage(value)}
-                  setIsLoading={(value) => setIsLoading(value)}
+            <form onSubmit={handleUpload} className='flex flex-col p-5 gap-5 w-full relative'>
+              <input
+                type='text'
+                name='parkname'
+                id='parkname'
+                placeholder='Ingrese el nombre o código del parque'
+                value={filter}
+                className='w-full p-2 focus:outline-2 focus:outline-sky-500'
+                onClick={() => setShowParksList(true)}
+                onBlur={handleInputBlur}
+                onChange={(e) => {
+                  handleInputChange(e)
+                }}
+                autoComplete='off'
+              />
+              {showParksList &&
+                <ParkList
+                  handleShowParksList={() => setShowParksList(false)}
+                  filter={filter} setParkName={(value) => handleParkName(value)}
+                  setFilter={(value) => setFilter(value)}
                 />}
+              <input
+                type='file'
+                name='video'
+                id='video'
+                accept='video/*'
+                className='text-gray-300 cursor-pointer'
+                defaultValue={video}
+                onChange={(e) => handleVideoInput(e)}
+              />
+              <input type='submit' value='Subir video' className='p-2 bg-sky-500 hover:bg-sky-300 cursor-pointer font-medium text-gray-50' />
+            </form>
           </section>
-        )}
-        {showStatistics && (
-          <section className='flex flex-col items-center justify-center w-full'>
-            {isLoading
-              ? <Loading text='Analizando video' />
-              : <Statistics videoName={data?.video_name} />}
-          </section>
-        )}
-      </div>
-    </article>
+          {showImage && (
+            <section className='flex flex-col items-center justify-center w-full'>
+              {isLoading
+                ? <Loading text='Subiendo video' />
+                : <Canva
+                    imageBase64={image}
+                    processedData={data}
+                    setShowStatistics={(value) => setShowStatistics(value)}
+                    setShowImage={(value) => setShowImage(value)}
+                    setIsLoading={(value) => setIsLoading(value)}
+                  />}
+            </section>
+          )}
+          {showStatistics && (
+            <section className='flex flex-col items-center justify-center w-full'>
+              {isLoading
+                ? <Loading text='Analizando video' />
+                : <Statistics videoName={data?.video_name} />}
+            </section>
+          )}
+        </div>
+      </article>
+    </div>
   )
 }
 
