@@ -3,9 +3,11 @@ import { createContext, useEffect, useState } from 'react'
 export const RequestContext = createContext({})
 
 export function RequestContextProvider ({ children }) {
-  const BASE_URL = 'http://cesp.westus3.cloudapp.azure.com/api'
+  const BASE_URL = 'http://localhost:8000/api'
   const [statistics, setStatistics] = useState()
   const [parks, setParks] = useState([])
+  const [model, setModel] = useState('COCO')
+  const [isPartial, setIsPartial] = useState(false)
 
   useEffect(() => {
     fetchParks()
@@ -17,8 +19,16 @@ export function RequestContextProvider ({ children }) {
     setParks(data?.parks)
   }
 
+  const changeModel = (selectedModel) => {
+    setModel(selectedModel)
+  }
+
+  const updateIsPartial = (value) => {
+    setIsPartial(value)
+  }
+
   return (
-    <RequestContext.Provider value={{ BASE_URL, statistics, setStatistics, parks }}>
+    <RequestContext.Provider value={{ BASE_URL, statistics, setStatistics, parks, changeModel, model, isPartial, updateIsPartial }}>
       {children}
     </RequestContext.Provider>
   )
