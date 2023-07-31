@@ -81,12 +81,11 @@ def detect_people(request):
     video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
     cap = cv2.VideoCapture(low_fps_video_path)
-    total_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     ret, frame = cap.read()
     H, W, _ = frame.shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(video_path_out, fourcc, int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
+    out = cv2.VideoWriter(video_path_out, fourcc, fps, (W, H))
 
     box_annotator = sv.BoxAnnotator(
         thickness=1,
@@ -96,12 +95,13 @@ def detect_people(request):
     START = sv.Point(start_point[0], start_point[1])
     END = sv.Point(end_point[0], end_point[1])
     
-    #Se definen los estilos de la linea y se colocan los puntos inicial y final
+    #Se selecciona entre las lineas si es parcial o no
     if is_partial:
         line_zone = LineZoneFixed(start=START, end=END)
     else:
         line_zone = sv.LineZone(start=START, end=END)
 
+    #Se definen los estilos de la linea
     line_zone_annotator = sv.LineZoneAnnotator(
         thickness=2,
         text_thickness=1,
@@ -112,14 +112,9 @@ def detect_people(request):
     new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
     model = YOLO(new_model)
 
-    frame_count = 0
-    last_printed = -1
     #Se itera cada frame del video
     for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
-        percentage = round(frame_count / total_frame * 100)
-        if percentage % 1 == 0 and percentage != last_printed:
-            print(f"{percentage}%")
-            last_printed = percentage
+        
         #Se obtiene el frame
         frame = result.orig_img
         #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
@@ -140,7 +135,6 @@ def detect_people(request):
         line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
 
         out.write(frame)
-        frame_count += 1
         
     print("In: ", line_zone.in_count)
     print("Out: ",line_zone.out_count)
