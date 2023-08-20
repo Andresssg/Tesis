@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)x%0hp%(cgjbzmctnrct4&r*)wll(%nn)usk($w^a2%^10q&qp'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -81,32 +82,39 @@ WSGI_APPLICATION = 'tesis_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-"""
-certificate_name = 'certificate.pem'
+certificate_name = config('CERTIFICATE_NAME')
 certificate_path = os.path.join(BASE_DIR,certificate_name)
+
+
+DB_HOST = config('DATABASE_HOST')
+DB_NAME = config('DATABASE_DEFAULT_NAME')
+DB_NAME2 = config('DATABASE_SECOND_NAME')
+DB_USER = config('DATABASE_USER')
+DB_PASSWORD = config('DATABASE_PASSWORD')
+DB_PORT = config('DATABASE_PORT')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tesis',
-        'USER': 'tesisadmin',
-        'HOST': 'tesisdb.mysql.database.azure.com',
-        'PORT': '3306',
-        'PASSWORD': 'Admin123',
+        'NAME': f'{DB_NAME}',
+        'USER': f'{DB_USER}',
+        'HOST': f'{DB_HOST}',
+        'PORT': f'{DB_PORT}',
+        'PASSWORD': f'{DB_PASSWORD}',
         'OPTIONS': {
             'ssl': {'ca': f'{certificate_path}'}
         }
-    }
-}"""
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'tesis.sqlite3',
     },
     'parks': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'parks.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': f'{DB_NAME2}',
+        'USER': f'{DB_USER}',
+        'HOST': f'{DB_HOST}',
+        'PORT': f'{DB_PORT}',
+        'PASSWORD': f'{DB_PASSWORD}',
+        'OPTIONS': {
+            'ssl': {'ca': f'{certificate_path}'}
+        }
     }
 }
 
