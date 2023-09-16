@@ -30,6 +30,13 @@ def video_upload_view(request):
     # Validar si el archivo es un video
     if not is_video(file_obj):
         return Response({'error': 'El archivo no es un video válido.'}, status=400)
+    
+    #Validar la duracion del video
+    max_length = 1200 #20 mins
+    length = int(request.data.get('duration'))
+    if length > max_length:
+        max_length_in_mins = round(max_length / 60, 2)
+        return Response({'error': f'El video supera el limite de {max_length_in_mins} mins.'}, status=400)
 
     file_path = default_storage.save(f'videos/{video_name}', file_obj)
     low_fps_video = reduce_fps(file_path, video_name, 8)
