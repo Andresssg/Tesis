@@ -11,3 +11,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </RequestContextProvider>
   </React.StrictMode>
 )
+
+window.addEventListener('beforeunload', (event) => {
+  const message = '¿Seguro que desea perder la información del proceso actual?'
+  event.returnValue = message
+  return message
+})
