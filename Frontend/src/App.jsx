@@ -52,28 +52,33 @@ function App () {
     setShowImage(true)
     setIsLoading(true)
 
+    let res
     try {
-      const res = await fetch(`${BASE_URL}/upload/`, {
+      res = await fetch(`${BASE_URL}/upload/`, {
         method: 'POST',
         body: form
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data?.error || `Error al enviar los datos: ${res.statusText}`)
-      }
-
-      const data = await res.json()
-      const { first_frame } = data
-      setImage(first_frame)
-      setData(data)
-      setIsLoading(false)
-      setShowStatistics(false)
     } catch (error) {
       window.alert('Error al subir el video')
       setIsLoading(false)
       if (!image) setShowImage(false)
     }
+
+    if (!res.ok) {
+      const data = await res.json()
+      const errorMsg = data?.error || `Error al enviar los datos: ${res.statusText}`
+      window.alert(errorMsg)
+      setIsLoading(false)
+      if (!image) setShowImage(false)
+      throw new Error(errorMsg)
+    }
+
+    const data = await res.json()
+    const { first_frame } = data
+    setImage(first_frame)
+    setData(data)
+    setIsLoading(false)
+    setShowStatistics(false)
   }
 
   const handleParkName = (value) => {
