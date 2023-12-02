@@ -200,3 +200,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+nginx.conf
+.env.docker

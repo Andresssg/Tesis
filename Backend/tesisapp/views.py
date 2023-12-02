@@ -131,7 +131,7 @@ def detect_people(request):
             detections.tracker_id = result.boxes.id.cpu().numpy().astype(int)
 
         labels = [
-            f"{model.model.names[class_id]}"
+            f"{model.model.names[class_id]} {tracker_id}"
             for _, confidence, class_id, tracker_id
             in detections
         ]

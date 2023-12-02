@@ -86,7 +86,7 @@ certificate_name = config('CERTIFICATE_NAME')
 certificate_path = os.path.join(BASE_DIR,certificate_name)
 
 
-DB_HOST = config('DATABASE_HOST')
+""" DB_HOST = config('DATABASE_HOST')
 DB_NAME = config('DATABASE_DEFAULT_NAME')
 DB_NAME2 = config('DATABASE_SECOND_NAME')
 DB_USER = config('DATABASE_USER')
@@ -115,6 +115,17 @@ DATABASES = {
         'OPTIONS': {
             'ssl': {'ca': f'{certificate_path}'}
         }
+    }
+} """
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'tesis.sqlite3',
+    },
+    'parks': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'parks.sqlite3',
     }
 }
 

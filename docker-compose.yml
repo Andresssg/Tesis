@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    expose:
+      - "${BACKEND_PORT}"
+    volumes:
+      - type: bind
+        source: ${VOLUME_BACKEND_SOURCE}
+        target: ${VOLUME_BACKEND_TARGET}
+    env_file:
+      - ./.env.docker
+    restart: always  # Reinicio automático del contenedor
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./Frontend/Dockerfile
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    depends_on:
+      - backend
+    env_file:
+      - ./.env.docker
+    restart: always

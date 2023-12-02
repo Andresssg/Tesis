@@ -1,0 +1,9 @@
+# Django
+*/videos/
+*/conf/
+*/_pycache_/
+*/requirements-copy.txt
+
+# Frontend
+*/dist/
+*/node_modules/
