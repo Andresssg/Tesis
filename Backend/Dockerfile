@@ -12,26 +12,24 @@ RUN pip install --upgrade pip && \
     pip install numpy==1.22.4 && \
     pip install opencv-python==4.7.0.72
 
-# Copia el archivo .env
-COPY ./.env ./.env
-
-# Copia el archivo de configuración de Gunicorn
-COPY ./conf/gunicorn_config.py ./gunicorn_config.py
-
 # Copia el archivo requirements.txt
 COPY ./requirements.txt ./requirements.txt
 
 # Instala las dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-#RUN python manage.py makemigrations
-
-#RUN python manage.py migrate
-
+# Instala Gunicorn
 RUN pip install gunicorn
+
+RUN pip install mysql-connector-python
+
+RUN apt-get update && apt-get install -y gettext-base
+
+# Copia el archivo de configuración de Gunicorn
+COPY ./conf/gunicorn_config.py ./gunicorn_config_template.py
 
 # Copia todo el contenido de la carpeta Backend a /backend
 COPY . .
 
-# Ejecuta el servidor de Django con Gunicorn y el archivo de configuración
-CMD ["gunicorn", "-c", "./gunicorn_config.py", "tesis_project.wsgi:application"]
+# Copia el archivo .env
+COPY .env .env

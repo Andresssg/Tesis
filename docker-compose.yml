@@ -1,28 +1,64 @@
-version: '3'
+version: '3.8'
 
 services:
+  database:
+    image: mysql:latest
+    container_name: database
+    environment:
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+    expose:
+      - ${DATABASE_PORT}
+    volumes:
+      - ${VOLUME_DATABASE_TESIS}:/var/lib/mysql:rw
+      - ./Database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    healthcheck:
+      test: "mysql -u${DATABASE_USER} -p${DATABASE_PASSWORD} -e 'USE ${DATABASE_SECOND_NAME};'"
+      interval: 60s
+      retries: 10
+
   backend:
     build:
       context: ./Backend
       dockerfile: Dockerfile
     expose:
       - "${BACKEND_PORT}"
+    environment:
+      - GUNICORN_COMMAND=${GUNICORN_COMMAND}
+      - GUNICORN_PYTHONPATH=${GUNICORN_PYTHONPATH}
+      - GUNICORN_BIND=${GUNICORN_BIND}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT}
     volumes:
       - type: bind
         source: ${VOLUME_BACKEND_SOURCE}
         target: ${VOLUME_BACKEND_TARGET}
-    env_file:
-      - ./.env.docker
+    depends_on:
+      database:
+        condition: service_healthy
+    command: > 
+      sh -c "envsubst < gunicorn_config_template.py > gunicorn_config.py &&
+            python manage.py migrate && 
+            python manage.py migrate --database=${DATABASE_SECOND_NAME} && 
+            python load_parks.py &&
+            gunicorn -c ./gunicorn_config.py tesis_project.wsgi:application"
     restart: always  # Reinicio automático del contenedor
+    healthcheck:
+      test: curl --fail -s -o /dev/null -w "%{http_code}" http://localhost:${BACKEND_PORT}/api/getparks/ || exit 1
+      interval: 60s
+      retries: 10
 
   nginx:
     build:
       context: .
       dockerfile: ./Frontend/Dockerfile
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    environment:
+      - NETWORK_BACKEND=${NETWORK_BACKEND}
+      - NGINX_PORT=${FRONTEND_PORT}
+      - NGINX_UPSTREAM=${NGINX_UPSTREAM}
     depends_on:
-      - backend
-    env_file:
-      - ./.env.docker
+      backend:
+        condition: service_healthy
     restart: always

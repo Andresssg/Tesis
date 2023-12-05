@@ -133,7 +133,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+*.env
 .venv
 env/
 venv/
@@ -200,6 +200,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-nginx.conf
-.env.docker

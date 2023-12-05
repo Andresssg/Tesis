@@ -1,9 +1,9 @@
 import multiprocessing
 
 #Comando para inciar el servidor gunicorn
-command = 'gunicorn'
+command = '${GUNICORN_COMMAND}'
 #Añade la aplicacion al pythonpath
-pythonpath = '/backend/tesis_project'
-bind = '0.0.0.0:8000'
+pythonpath = '${GUNICORN_PYTHONPATH}'
+bind = '${GUNICORN_BIND}'
 workers = multiprocessing.cpu_count() * 4 + 1
-timeout = 1000
+timeout = '${GUNICORN_TIMEOUT}'

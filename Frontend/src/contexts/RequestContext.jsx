@@ -3,7 +3,9 @@ import { createContext, useEffect, useState } from 'react'
 export const RequestContext = createContext({})
 
 export function RequestContextProvider ({ children }) {
-  const BASE_URL = 'http://cesp.westus3.cloudapp.azure.com/api'
+  const BASE_URL = import.meta.env.VITE_ENVIRONMENT === 'production'
+    ? import.meta.env.VITE_BASE_URL_PROD
+    : import.meta.env.VITE_BASE_URL_DEV
   const [statistics, setStatistics] = useState()
   const [parks, setParks] = useState([])
   const [model, setModel] = useState('COCO')
