@@ -1,3 +1,5 @@
+import logging
+import torch
 from django.http import FileResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -82,86 +84,99 @@ def detect_people(request):
         return Response({'error': 'No se proporcionaron los datos completos'}, status=400)
     if not len(start_point)==2 or not len(end_point)==2:
         return Response({'error': 'No se proporcionaron los puntos completos'}, status=400)
-    
-    low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
-    dir_path_out = verify_directory('out')
-    video_path_out = create_path(dir_path_out, f'out_{video_name}')
+    try:
+        low_fps_video_path = create_path(verify_directory('low'),f'low_{video_name}')
+        dir_path_out = verify_directory('out')
+        video_path_out = create_path(dir_path_out, f'out_{video_name}')
 
-    cap = cv2.VideoCapture(low_fps_video_path)
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
-    ret, frame = cap.read()
-    H, W, _ = frame.shape
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(video_path_out, fourcc, fps, (W, H))
+        cap = cv2.VideoCapture(low_fps_video_path)
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        ret, frame = cap.read()
+        H, W, _ = frame.shape
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(video_path_out, fourcc, fps, (W, H))
 
-    box_annotator = sv.BoxAnnotator(
-        thickness=1,
-        text_thickness=1,
-        text_scale=0.5
-    )
-    START = sv.Point(start_point[0], start_point[1])
-    END = sv.Point(end_point[0], end_point[1])
-    
-    #Se selecciona entre las lineas si es parcial o no
-    if is_partial:
-        line_zone = LineZoneFixed(start=START, end=END)
-    else:
-        line_zone = sv.LineZone(start=START, end=END)
+        box_annotator = sv.BoxAnnotator(
+            thickness=1,
+            text_thickness=1,
+            text_scale=0.5
+        )
+        START = sv.Point(start_point[0], start_point[1])
+        END = sv.Point(end_point[0], end_point[1])
 
-    #Se definen los estilos de la linea
-    line_zone_annotator = sv.LineZoneAnnotator(
-        thickness=2,
-        text_thickness=1,
-        text_scale=0.5,
-    )
+        #Se selecciona entre las lineas si es parcial o no
+        if is_partial:
+            line_zone = LineZoneFixed(start=START, end=END)
+        else:
+            line_zone = sv.LineZone(start=START, end=END)
 
-    #Se importa el modelo 
-    new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
-    model = YOLO(new_model)
+        #Se definen los estilos de la linea
+        line_zone_annotator = sv.LineZoneAnnotator(
+            thickness=2,
+            text_thickness=1,
+            text_scale=0.5,
+        )
 
-    #Se itera cada frame del video
-    for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0):
-        
-        #Se obtiene el frame
-        frame = result.orig_img
-        #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
-        detections = sv.Detections.from_yolov8(result)
-        
-        if result.boxes.id is not None:
-            detections.tracker_id = result.boxes.id.cpu().numpy().astype(int)
+        #Se importa el modelo 
+        new_model = MODELS['COCO'] if MODELS.get(selected_model) == None else MODELS[selected_model]
+        model = YOLO(new_model)
 
-        labels = [
-            f"{model.model.names[class_id]} {tracker_id}"
-            for _, confidence, class_id, tracker_id
-            in detections
-        ]
+        #Verificar si usar la CPU o GPU
+        device = None
+        if torch.cuda.is_available():
+            default_device_id = torch.cuda.current_device()
+            device=default_device_id
+            print(f"ID de la GPU predeterminada: {default_device_id}")
+        else:
+            device='cpu'
+            print('Usando CPU. CUDA no disponible.')
 
-        frame = box_annotator.annotate(scene=frame, detections=detections, labels=labels)
-        
-        line_zone.trigger(detections=detections)
-        line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
+        #Se itera cada frame del video
+        for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0, devices=device):
 
-        out.write(frame)
-        
-    print("In: ", line_zone.in_count)
-    print("Out: ",line_zone.out_count)
+            #Se obtiene el frame
+            frame = result.orig_img
+            #Se obtienen las coordenadas y toda la informacion asociada a la deteccion
+            detections = sv.Detections.from_yolov8(result)
 
-    out.release()
-    cap.release()
+            if result.boxes.id is not None:
+                detections.tracker_id = result.boxes.id.cpu().numpy().astype(int)
 
-    save = {
-        'video_name': video_name,
-        'park_name': park_name,
-        'record_date': record_date,
-        'comments' : comments,
-        'hour_grabation': record_date[11:19]
-    }
-    respuesta = save_in_db(save, line_zone.in_count, line_zone.out_count)
+            labels = [
+                f"{model.model.names[class_id]} {tracker_id}"
+                for _, confidence, class_id, tracker_id
+                in detections
+            ]
 
-    if respuesta[0] == "400":
-        return Response(respuesta[1].errors, status=400)
-    chart = create_chart_parkname(park_name)
-    chart_hour = create_chart_hour(park_name, record_date)
+            frame = box_annotator.annotate(scene=frame, detections=detections, labels=labels)
 
-    charts = [chart, chart_hour]
-    return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'charts':charts}, status=201)
+            line_zone.trigger(detections=detections)
+            line_zone_annotator.annotate(frame=frame, line_counter=line_zone)
+
+            out.write(frame)
+
+        print("In: ", line_zone.in_count)
+        print("Out: ",line_zone.out_count)
+
+        out.release()
+        cap.release()
+
+        save = {
+            'video_name': video_name,
+            'park_name': park_name,
+            'record_date': record_date,
+            'comments' : comments,
+            'hour_grabation': record_date[11:19]
+        }
+        respuesta = save_in_db(save, line_zone.in_count, line_zone.out_count)
+
+        if respuesta[0] == "400":
+            return Response(respuesta[1].errors, status=400)
+        chart = create_chart_parkname(park_name)
+        chart_hour = create_chart_hour(park_name, record_date)
+
+        charts = [chart, chart_hour]
+        return Response({'conteo':respuesta[1].data,'reportes':respuesta[2].data,'charts':charts}, status=201)
+    except Exception as e:
+        logging.error(e)
+        return Response({'error':'Se ha generado un error al analizar el video.'}, status=500)
