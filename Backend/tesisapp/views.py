@@ -126,13 +126,15 @@ def detect_people(request):
         if torch.cuda.is_available():
             default_device_id = torch.cuda.current_device()
             device=default_device_id
-            print(f"ID de la GPU predeterminada: {default_device_id}")
+            model.to(device)
+            print(f"ID de la GPU predeterminada: {default_device_id}. CUDA disponible. {model.device.type}")
         else:
             device='cpu'
-            print('Usando CPU. CUDA no disponible.')
+            model.to(device)
+            print(f'Usando CPU. CUDA no disponible. {model.device.type}')
 
         #Se itera cada frame del video
-        for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0, devices=device):
+        for result in model.track(source=low_fps_video_path, stream=True, verbose=False, classes=0, device=device):
 
             #Se obtiene el frame
             frame = result.orig_img
