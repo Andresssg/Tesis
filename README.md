@@ -36,7 +36,7 @@ Para que el proyecto pueda usarse, es necesario definir las siguientes variables
 
 `GUNICORN_PYTHONPATH='/backend/tesis_project'`-> **Ubicación del proyecto django dentro del contenedor(No editar)**
 
-`GUNICORN_BIND='0.0.0.0:$BACKEND_PORT'`-> **URL expuesta gunicorn(No editar)**
+`GUNICORN_BIND_IP='0.0.0.0'`-> **IP expuesta gunicorn(No editar)**
 
 `GUNICORN_TIMEOUT='1000'`-> **Tiempo de espera(No editar)**
 
