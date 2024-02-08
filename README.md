@@ -6,7 +6,7 @@ Este repositorio contiene los archivos del proyecto de grado, además de una des
 
 
 
-## Variables de entorno.
+## ⚙️ Variables de entorno.
 
 Para que el proyecto pueda usarse, es necesario definir las siguientes variables de entorno dentro de la carpeta raiz, Frontend y Backend en un archivo llamado .env
 
@@ -59,7 +59,7 @@ Para que el proyecto pueda usarse, es necesario definir las siguientes variables
 `VOLUME_DATABASE_TESIS`-> **Caperta en la máquina local donde se guardan los archivos de la DB**
 
 `Nota: Si se cambian los nombres de las bases de datos, se debe modificar el archivo ./Database/init.sql y colocar los mismos nombres ahí.`
-## Depliegue con docker
+## 🐋 Depliegue con docker
 
 Para desplegar el proyecto en contenedores de docker es necesario contar con docker instalado en la máquina.
 
@@ -74,17 +74,18 @@ docker compose -f ruta/al/archivo.yml up -d
 ```
 Luego en la consola se puede el estado de los contenedores.
 
-## Depliegue en development
+## 🚀 Depliegue en development (local)
 
 Para desplegar el proyecto para desarrollo es necesario tener instalado `MySQL`, `python`, `Nodejs`.
 
-### DataBase
+### 🗄️ Database
 Se debe contar con MySQL server instalado o en su defecto una base de datos en la nube. y crear las respectivas tablas
 
-### Backend
+### 🛠️ Backend
 Se debe contar con un entorno virtual de python ya sea `Anaconda`, `Miniconda`, `VENV`, entre otros. Ubicarse en la carpeta del backend y ejecutar el comando a continuacion para instalar las dependencias.
 
 ```bash
+pip install --no-cache-dir numpy
 pip install --no-cache-dir -r requirements.txt
 ```
 
@@ -106,7 +107,7 @@ Luego se debe ejecutar el siguiente comando para iniciar el servidor de `DJANGO`
 python manage.py runserver
 ```
 
-### Frontend
+### 🌐 Frontend
 Inicialmente hay que estar ubicado en la ruta de la carpeta frontend. Luego para instalar las dependencias es necesario ejecutar el comando acontinuación.
 
 ```bash
@@ -116,7 +117,7 @@ Despues se debe ejecutar el comando a continuación, esto levanta el entorno de 
 ```bash
 npm run dev
 ```
-## API Reference
+## 📗 API Reference
 
 #### Obtener lista de parques
 
@@ -171,3 +172,11 @@ Este endpoint envía el video analizado al cliente para almacenarlo de forma loc
 | Parameter | Type     | Description                       | Ejemplo                       |
 | :-------- | :------- | :-------------------------------- | :-------------------------------- |
 | `video_name`      | `string` | **Required**. Nombre del video a descargar | video_20230512113356.mp4 |
+
+
+
+## Acknowledgements
+<div>
+  <a href="https://github.com/ultralytics/ultralytics" target="_blank" rel="noreferrer"><img src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/64777c3e071ec953437e6950_logo.svg" width="250" height="80" alt="Ultralytics" /></a>
+  <a href="https://github.com/roboflow/supervision" target="_blank" rel="noreferrer"><img src="https://media.roboflow.com/open-source/supervision/rf-supervision-banner.png?updatedAt=1678995927529" width="350" height="80" alt="Supervision Roboflow" /></a>
+</div>
