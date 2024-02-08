@@ -175,7 +175,7 @@ Este endpoint envía el video analizado al cliente para almacenarlo de forma loc
 
 
 
-## Acknowledgements
+## 🙏 Acknowledgements
 <div>
   <a href="https://github.com/ultralytics/ultralytics" target="_blank" rel="noreferrer"><img src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/64777c3e071ec953437e6950_logo.svg" width="250" height="80" alt="Ultralytics" /></a>
   <a href="https://github.com/roboflow/supervision" target="_blank" rel="noreferrer"><img src="https://media.roboflow.com/open-source/supervision/rf-supervision-banner.png?updatedAt=1678995927529" width="350" height="80" alt="Supervision Roboflow" /></a>
