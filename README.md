@@ -6,6 +6,10 @@ Este repositorio contiene los archivos del proyecto de grado, además de una des
 
 
 
+## 🖼️ Preview.
+
+https://github.com/Andresssg/Tesis/assets/99710654/7e85731f-de96-4fa3-a2d6-b9fe099ffac7
+
 ## ⚙️ Variables de entorno.
 
 Para que el proyecto pueda usarse, es necesario definir las siguientes variables de entorno dentro de la carpeta raiz, Frontend y Backend en un archivo llamado .env
