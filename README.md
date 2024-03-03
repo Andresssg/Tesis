@@ -1,5 +1,6 @@
 
 # CESP
+![CESP-BANNER](https://github.com/Andresssg/Tesis/assets/99710654/6997b31e-fc91-4630-b803-b371ffe0f469)
 
 Este repositorio contiene los archivos del proyecto de grado, además de una descripción de como realizar el despliegue de la aplicación.
 
